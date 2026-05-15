@@ -1,0 +1,42 @@
+{
+  "name": "Dark",
+  "version": "1.0.0",
+  "background": {
+    "color": "#1e1e1e",
+    "opacity": 1.0
+  },
+  "templateBackgrounds": {},
+  "colors": {
+    "text": "#d4d4d4",
+    "heading": "#ffffff",
+    "accent": "#4ec9b0",
+    "link": "#4ec9b0",
+    "linkHover": "#3ba89a",
+    "codeBackground": "#2d2d2d",
+    "codeText": "#d4d4d4"
+  },
+  "fonts": {
+    "body": "Arial, Helvetica, sans-serif",
+    "heading": "'Helvetica Neue', Helvetica, Arial, sans-serif",
+    "code": "Consolas, 'Courier New', monospace"
+  },
+  "spacing": {
+    "slideMargin": "2rem",
+    "headingMargin": "1rem 0",
+    "paragraphMargin": "0.5rem 0",
+    "lineHeight": "1.6"
+  },
+  "syntax": {
+    "keyword": "#569cd6",
+    "string": "#ce9178",
+    "comment": "#6a9955",
+    "function": "#dcdcaa",
+    "number": "#b5cea8",
+    "operator": "#d4d4d4"
+  },
+  "slideCounter": {
+    "color": "#d4d4d4",
+    "background": "rgba(30, 30, 30, 0.9)",
+    "fontSize": "0.9rem"
+  }
+}

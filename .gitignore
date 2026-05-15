@@ -1,0 +1,26 @@
+# Mill build outputs
+out/
+.mill-jvm-opts
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.metals/
+.bsp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated presentation output (render into a separate directory)
+*.html
+!examples/**/*.html
+
+# Compiled artifacts
+*.class
+*.jar
+
+# Environment
+.env
+.env.local

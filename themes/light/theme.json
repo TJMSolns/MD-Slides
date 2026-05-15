@@ -1,0 +1,42 @@
+{
+  "name": "Light",
+  "version": "1.0.0",
+  "background": {
+    "color": "#ffffff",
+    "opacity": 1.0
+  },
+  "templateBackgrounds": {},
+  "colors": {
+    "text": "#333333",
+    "heading": "#2c3e50",
+    "accent": "#3498db",
+    "link": "#3498db",
+    "linkHover": "#2980b9",
+    "codeBackground": "#f4f4f4",
+    "codeText": "#333333"
+  },
+  "fonts": {
+    "body": "Arial, Helvetica, sans-serif",
+    "heading": "'Helvetica Neue', Helvetica, Arial, sans-serif",
+    "code": "Consolas, 'Courier New', monospace"
+  },
+  "spacing": {
+    "slideMargin": "2rem",
+    "headingMargin": "1rem 0",
+    "paragraphMargin": "0.5rem 0",
+    "lineHeight": "1.6"
+  },
+  "syntax": {
+    "keyword": "#569cd6",
+    "string": "#ce9178",
+    "comment": "#6a9955",
+    "function": "#dcdcaa",
+    "number": "#b5cea8",
+    "operator": "#d4d4d4"
+  },
+  "slideCounter": {
+    "color": "#666666",
+    "background": "rgba(255, 255, 255, 0.9)",
+    "fontSize": "0.9rem"
+  }
+}

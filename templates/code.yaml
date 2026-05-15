@@ -1,0 +1,20 @@
+id: code
+name: Code Snippet
+description: Code block with optional explanation
+slots:
+  - name: heading
+    type: markdown_block
+    required: true
+    constraints:
+      max_lines: 1
+  - name: code
+    type: code
+    required: true
+    constraints:
+      max_lines: 20
+  - name: notes
+    type: markdown_block
+    required: false
+    constraints:
+      max_lines: 5
+      max_words: 50
