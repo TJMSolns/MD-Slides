@@ -438,55 +438,67 @@ object HTMLRenderer:
       text-decoration: underline;
     }
 
-    /* Nested list support (US-003.3) */
+    /* Nested list support (US-003.3) — applies to slide body and two-column columns */
     .slide-body ul,
-    .slide-body ol {
+    .slide-body ol,
+    .column ul,
+    .column ol {
       margin: ${theme.spacing.paragraphMargin};
       padding-left: 2em;
     }
 
     /* Unordered list bullet hierarchy */
-    .slide-body ul {
+    .slide-body ul,
+    .column ul {
       list-style-type: disc;  /* Level 1: disc (•) */
     }
 
-    .slide-body ul ul {
+    .slide-body ul ul,
+    .column ul ul {
       list-style-type: circle;  /* Level 2: circle (◦) */
       margin-top: 0.5em;
     }
 
-    .slide-body ul ul ul {
+    .slide-body ul ul ul,
+    .column ul ul ul {
       list-style-type: square;  /* Level 3: square (▪) */
     }
 
     /* Ordered list numbering hierarchy */
-    .slide-body ol {
+    .slide-body ol,
+    .column ol {
       list-style-type: decimal;  /* Level 1: decimal (1, 2, 3...) */
     }
 
-    .slide-body ol ol {
+    .slide-body ol ol,
+    .column ol ol {
       list-style-type: lower-alpha;  /* Level 2: lower-alpha (a, b, c...) */
       margin-top: 0.5em;
     }
 
-    .slide-body ol ol ol {
+    .slide-body ol ol ol,
+    .column ol ol ol {
       list-style-type: lower-roman;  /* Level 3: lower-roman (i, ii, iii...) */
     }
 
     /* Mixed nesting support */
     .slide-body ul ol,
-    .slide-body ol ul {
+    .slide-body ol ul,
+    .column ul ol,
+    .column ol ul {
       margin-top: 0.5em;
     }
 
     /* List item spacing */
-    .slide-body li {
+    .slide-body li,
+    .column li {
       margin: 0.3em 0;
       line-height: ${theme.spacing.lineHeight};
     }
 
-    /* Table styling */
-    .slide-body table {
+    /* Table styling — applies to slide body and two-column columns */
+    .slide-body table,
+    .column table {
       width: auto;
       max-width: 90%;
       border-collapse: collapse;
@@ -498,7 +510,8 @@ object HTMLRenderer:
       border: 2px solid #333;
     }
 
-    .slide-body table th {
+    .slide-body table th,
+    .column table th {
       background-color: ${theme.colors.codeBackground};
       color: ${theme.colors.codeText};
       padding: 12px 16px;
@@ -507,16 +520,19 @@ object HTMLRenderer:
       border: 1px solid #333;
     }
 
-    .slide-body table td {
+    .slide-body table td,
+    .column table td {
       padding: 10px 16px;
       border: 1px solid #333;
     }
 
-    .slide-body table tbody tr:nth-child(odd) {
+    .slide-body table tbody tr:nth-child(odd),
+    .column table tbody tr:nth-child(odd) {
       background-color: rgba(0, 0, 0, 0.02);
     }
 
-    .slide-body table tbody tr:hover {
+    .slide-body table tbody tr:hover,
+    .column table tbody tr:hover {
       background-color: rgba(0, 0, 0, 0.05);
     }
 
