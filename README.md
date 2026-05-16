@@ -15,29 +15,65 @@ MD-Slides converts structured Markdown files into self-contained HTML presentati
 **Requirements:** Java 11 or higher.
 
 ```bash
-# 1. Download the JAR and the example deck
+# Download the JAR
 curl -L https://github.com/TJMSolns/MD-Slides/releases/latest/download/md-slides.jar -o md-slides.jar
-git clone https://github.com/TJMSolns/MD-Slides.git
-
-# 2. Render the feature tour — exercises every template and feature
-java -jar md-slides.jar render MD-Slides/examples/feature-tour --theme dark
-
-# 3. Open it
-open MD-Slides/examples/feature-tour/index.html      # macOS
-xdg-open MD-Slides/examples/feature-tour/index.html  # Linux
-start MD-Slides/examples/feature-tour/index.html      # Windows
 ```
 
-Press **S** in the presentation to open speaker view. The feature tour has notes on every slide.
+Create `my-talk.md`:
 
-Once you've seen it running, write your own — `my-talk.md` next to `md-slides.jar`, then:
+```markdown
+---
+template: title
+---
+
+# My Talk
+
+## A subtitle
+
+**Your Name**
+
+---
+template: content
+---
+
+## First slide
+
+Write your content here.
+
+- One idea per bullet
+- Short phrases work best
+
+---
+template: closing
+---
+
+## Thanks
+
+Questions?
+```
+
+Render and open:
 
 ```bash
 java -jar md-slides.jar render my-talk --theme light
-open my-talk/index.html
+open my-talk/index.html          # macOS
+xdg-open my-talk/index.html     # Linux
+start my-talk/index.html         # Windows
 ```
 
-`my-talk.md` is your markdown source; `my-talk/` is the generated output directory containing `index.html` and all copied assets.
+`my-talk/` is a self-contained output directory — `index.html` plus all copied assets.
+
+### See all features in action
+
+[`examples/feature-tour.md`](examples/feature-tour.md) is a 21-slide deck that exercises every template, content element, image, speaker notes, and theme option. To run it, clone the repo (which includes the image assets it references):
+
+```bash
+git clone https://github.com/TJMSolns/MD-Slides.git
+java -jar md-slides.jar render MD-Slides/examples/feature-tour --theme dark
+open MD-Slides/examples/feature-tour/index.html
+```
+
+Press **S** to open speaker view — the feature tour has notes on every slide.
 
 ---
 
@@ -89,8 +125,6 @@ Render it:
 ```bash
 java -jar md-slides.jar render my-talk --theme dark
 ```
-
-For a working reference that exercises every template and feature, see [`examples/feature-tour.md`](examples/feature-tour.md).
 
 ### Keyboard controls
 
