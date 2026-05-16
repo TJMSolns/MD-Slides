@@ -967,8 +967,8 @@ object HTMLRenderer:
   private def renderTwoColumnSlide(slide: Slide, preRenderedDiagrams: Map[String, String], colors: Map[String, String]): Frag =
     // AC-12 (Two-Column Layout): ARIA attributes for accessibility
     div(cls := "two-column-slide", attr("role") := "region", attr("aria-label") := "Two-column slide")(
-      // Render title if present in frontmatter
-      slide.getSlot("title").map(title =>
+      // Render heading if present (extracted from ## line or frontmatter title:)
+      slide.getSlot("heading").orElse(slide.getSlot("title")).map(title =>
         h2(cls := "slide-heading", style := s"color: ${colors("heading")}")(renderFormattedText(title, preRenderedDiagrams))
       ),
       // Two-column container

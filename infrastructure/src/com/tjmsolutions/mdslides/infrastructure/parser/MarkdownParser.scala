@@ -363,13 +363,21 @@ object MarkdownParser:
   private def parseTwoColumnSlide(content: String, slideNumber: Int): Either[String, Map[String, String]] =
     import com.tjmsolutions.mdslides.domain.TwoColumnSlide
 
-    // Split content by ---column--- delimiter
-    TwoColumnSlide.parseColumns(content) match
+    // Extract optional ## heading from the top of the content before parsing columns
+    val lines = content.split("\n")
+    val (headingOpt, contentForColumns) = lines.headOption.map(_.trim) match
+      case Some(line) if line.startsWith("## ") =>
+        val heading = line.drop(3).trim
+        val rest = lines.drop(1).dropWhile(_.trim.isEmpty).mkString("\n")
+        (Some(heading), rest)
+      case _ =>
+        (None, content)
+
+    // Split remaining content by ---column--- delimiter
+    TwoColumnSlide.parseColumns(contentForColumns) match
       case Left(error) => Left(error.toString)
       case Right((leftColumn, rightColumn)) =>
-        Right(Map(
-          "leftColumn" -> leftColumn,
-          "rightColumn" -> rightColumn
-        ))
+        val base = Map("leftColumn" -> leftColumn, "rightColumn" -> rightColumn)
+        Right(headingOpt.fold(base)(h => base + ("heading" -> h)))
 
 end MarkdownParser
