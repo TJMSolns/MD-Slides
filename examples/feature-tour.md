@@ -8,27 +8,21 @@ template: title
 
 **MD-Slides v1.0.0**
 
-<!-- Speaker notes: This tour covers every feature in MD-Slides: all six templates, every content type, keyboard navigation, speaker view, CLI commands, themes, configuration, and validation. Each slide either demonstrates the feature by using it, or shows the markdown source alongside the rendered result. Follow along in examples/feature-tour.md while viewing the presentation — you'll see exactly what markdown produced each slide. -->
+<!-- Speaker notes: This tour covers every feature in MD-Slides: all six templates, every content type, keyboard navigation, speaker view, CLI commands, themes, configuration, and validation. Two-column slides throughout show the markdown you type on the left and what it renders to on the right. Open examples/feature-tour.md in a text editor alongside this presentation — you'll see exactly what produced each slide. -->
 
 ---
 template: content
 ---
 
-## How this tour works
+## How to read this tour
 
-MD-Slides converts Markdown to self-contained HTML presentations. This deck demonstrates every feature by **using it**, across seven sections:
+Every feature is demonstrated by **using it**. Two-column slides show the markdown source on the left and the rendered result on the right.
 
-1. Templates — six slide layouts
-2. Content — formatting, lists, code blocks, images
-3. Speaker view — notes, next-slide preview, elapsed timer
-4. Navigation — every keyboard shortcut
-5. CLI — render, display, report, smart default
-6. Themes and configuration
-7. Validation — errors collected and shown together
+**Escaping note:** Slide separators (`---`) cannot appear as bare lines inside code blocks — the parser would split on them. All code examples omit the surrounding `---` markers. Open `examples/feature-tour.md` to see the full source format.
 
-Open `examples/feature-tour.md` alongside this presentation to see what markdown produces each slide.
+Seven sections: Templates · Content · Speaker view · Navigation · CLI · Themes & config · Validation
 
-<!-- Speaker notes: The best way to read this tour is side-by-side: open feature-tour.md in a text editor and the rendered presentation in a browser. You can see exactly what markdown produces each slide. The file is self-contained — all images are embedded as base64 data URLs, so no external files are needed. -->
+<!-- Speaker notes: The two-column convention is used throughout: left column shows the markdown you type, right column shows what that markdown renders to. This makes the feature tour self-documenting — you can read the source file and see exactly what each construct produces. The escaping note is important: the MD-Slides parser splits files on exact --- lines before markdown processing, so code blocks that contain --- would corrupt the slide structure. -->
 
 ---
 template: section-title
@@ -38,49 +32,62 @@ template: section-title
 
 Six slide types — each with named slots and enforced constraints
 
-<!-- Speaker notes: Every slide declares its template in frontmatter. The template determines which slots are available, what content is required, and what the rendered layout looks like. Think of templates as typed containers for your content. Slides are separated by --- lines. Each slide opens with a frontmatter block: template name and any optional keys. -->
+<!-- Speaker notes: Every slide declares its template in frontmatter. The template determines which slots are available, what content is required, and what the rendered layout looks like. The surrounding --- markers that open and close frontmatter blocks are the same --- that separates slides — there is no separate frontmatter fence. -->
 
 ---
-template: content
+template: two-column
 ---
 
-## The title template
+## title template: source and constraints
 
-Every deck starts with one. Slides are separated by `---`. Inside each slide, a frontmatter block declares the template:
-
-```markdown
+```
 template: title
 
-# Main Title          ← required, max 2 lines
+# Main Title
+   required · max 2 lines
 
-## Subtitle           ← optional, max 2 lines
+## Subtitle
+   optional · max 2 lines
 
-**Author**            ← optional, max 80 chars
+**Author**
+   optional · max 80 chars
 ```
 
-The slide you saw first in this deck uses the `title` template. `H1` is used only here — all other templates use `H2` for headings.
+---column---
 
-<!-- Speaker notes: The title template is the only template where H1 is used. All other templates use H2 for headings. The author slot expects bold text (**name**) rather than a heading. Constraints on the title template are looser than content — it's for big, readable text only. -->
+`H1` headings are used **only** in the `title` template. All other templates use `H2`.
+
+The author slot expects `**bold text**`, not a heading.
+
+The first slide of this deck uses the `title` template — scroll back to see it.
+
+<!-- Speaker notes: The title template is the only template where H1 is used. All other templates use H2 for headings. The author slot expects bold text rather than a heading. Density limits on the title template are more relaxed than content — it's designed for large, readable text only. -->
 
 ---
-template: content
+template: two-column
 ---
 
-## The content template
+## content template: source and constraints
 
-`content` is the workhorse — used for most slides. Two slots:
-
-```markdown
+```
 template: content
 
-## Heading            ← required, max 1 line, max 80 chars
+## Heading
+   required · max 1 line · max 80 chars
 
-Body goes here.       ← required, max 12 lines, max 150 words
+Body goes here.
+   required · max 12 lines · max 150 words
 ```
 
-Density limits exist because slides that try to say everything say nothing. The validator tells you when you exceed them.
+---column---
 
-<!-- Speaker notes: The 12-line and 150-word limits are design guardrails, not arbitrary restrictions. Slides that exceed them typically need to be split. The validator reports all violations at once so you can fix them in one pass. This slide is itself a content template slide — you're looking at one right now. -->
+`content` is the workhorse — used for most slides.
+
+Density limits exist so your audience can actually read what you write. The validator reports **all violations at once** — you fix everything in one pass.
+
+*This slide is a `content` template.*
+
+<!-- Speaker notes: The 12-line and 150-word limits are design guardrails. Slides that exceed them typically need to be split. The validator accumulates all errors using Either[NonEmptyList[ValidationError], SlideDeck] — you see every problem at once, not one at a time. -->
 
 ---
 template: content
@@ -88,9 +95,9 @@ template: content
 
 ## section-title and closing
 
-`section-title` introduces a new chapter. `closing` ends the deck.
+Two templates for visual rhythm and transitions:
 
-```markdown
+```
 template: section-title
 
 ## Part Two: Content
@@ -98,7 +105,7 @@ template: section-title
 Formatting, lists, code, and images
 ```
 
-```markdown
+```
 template: closing
 
 ## Thanks for watching
@@ -106,7 +113,7 @@ template: closing
 Questions welcome
 ```
 
-Both work identically to `content` — heading plus optional body. Use them for visual rhythm and to signal transitions.
+Both parse identically to `content`. Use `section-title` to open chapters, `closing` to end the deck.
 
 <!-- Speaker notes: The section-title template renders with a distinct visual treatment — typically a full-bleed background color or image — that signals a major transition. The closing template does the same for the final slide. Both are good hooks for per-template background images in a custom theme. -->
 
@@ -114,82 +121,102 @@ Both work identically to `content` — heading plus optional body. Use them for 
 template: content
 ---
 
-## The two-column template
+## two-column template
 
-Split a slide into two independent columns with `---column---`:
+Split a slide into two independent columns with the `---column---` delimiter:
 
-```markdown
+```
 template: two-column
 
 ## Heading
 
-Left column content goes here.
+Left column content here.
 
 ---column---
 
-Right column content goes here.
+Right column content here.
 ```
 
-Each column has its own density limits: max 10 lines, 75 words. Use for comparisons, before/after, pros/cons, or parallel steps.
+Each column: max 10 lines, max 75 words. The `---column---` delimiter must appear on its own line.
 
-<!-- Speaker notes: The ---column--- delimiter must appear on its own line. Everything before it is the left column; everything after is the right column. The next slide demonstrates the two-column template in action — this slide is a content template so the code block above can safely contain ---column--- as literal text. -->
+<!-- Speaker notes: Everything before ---column--- is the left column; everything after is the right column. This slide is a content template, so ---column--- in the code block is safe — it's just text. The next slide is an actual two-column slide. -->
 
 ---
 template: two-column
 ---
 
-## Two-column in action: before / after
+## two-column in action: before / after
 
-**Single-threaded approach:**
+**Sequential — simple but slow:**
 
 ```scala
-// Process items one by one
-def processAll(items: List[Item]) =
-  items.foreach(process)
-// Simple but slow for large lists
+def processAll(items: List[Item]): Unit =
+  items.foreach(item => process(item))
+// O(n), no parallelism
 ```
 
-Each item is processed sequentially. Fine for small lists; becomes a bottleneck at scale.
+Each item processed one at a time. Fine for small lists; a bottleneck at scale.
 
 ---column---
 
-**Parallel approach:**
+**Parallel — Cats Effect:**
 
 ```scala
-// Process items concurrently
-def processAll(items: List[Item]) =
-  items.parTraverse(process)
-// Cats Effect parallel execution
+def processAll(items: List[Item]): IO[Unit] =
+  items.parTraverse(item => process(item))
+// concurrent via IO thread pool
 ```
 
-Each item is processed concurrently using the effect system's parallel execution primitive.
+`parTraverse` runs all items concurrently using the effect system's thread pool.
 
-<!-- Speaker notes: This is an actual two-column slide — two columns side by side. The left shows sequential processing, the right shows the parallel equivalent using Cats Effect parTraverse. Two-column layout is ideal for before/after and comparison slides like this one. -->
+<!-- Speaker notes: This is a live two-column slide. Left shows sequential processing, right shows the parallel equivalent using Cats Effect parTraverse. The two-column layout is ideal for before/after comparisons like this. -->
 
 ---
 template: content
 ---
 
-## The diagram template
+## diagram template
 
-`diagram` renders a Mermaid diagram with an optional caption:
+The `diagram` template renders Mermaid charts and graphs at full width:
 
-```markdown
+```
 template: diagram
-caption: System overview
+caption: Optional caption below the diagram
 
 ## Heading
 
-` ` `mermaid
-graph TD
-    A[Client] --> B[Server]
-    B --> C[(Database)]
-` ` `
+```mermaid
+graph LR
+    A[Start] --> B[Process]
+    B --> C[End]
+```
 ```
 
-Mermaid supports flowcharts, sequence diagrams, class diagrams, Gantt charts, pie charts, ER diagrams, and state diagrams.
+Supports: flowcharts, sequence diagrams, class diagrams, Gantt charts, pie charts, ER diagrams, state diagrams. The next slide is an actual `diagram` slide.
 
-<!-- Speaker notes: The diagram template is optimized for Mermaid diagrams — it provides extra horizontal space and renders the diagram at full width. The caption appears below the diagram. Mermaid is loaded from CDN so diagrams render without any build step. -->
+<!-- Speaker notes: The diagram template uses mermaid-cli (mmdc) to pre-render diagrams server-side to SVG during the render pass. The rendered SVG is embedded directly in the HTML output. If mmdc is not installed, diagrams fall back to showing the mermaid source as a code block. No client-side Mermaid.js is needed in the output. -->
+
+---
+template: diagram
+caption: The MD-Slides render pipeline
+---
+
+## Mermaid diagram: live render
+
+```mermaid
+graph LR
+    A[Markdown file] --> B[Parser]
+    B --> C[Validator]
+    C --> D[Renderer]
+    D --> E[HTML output]
+    style A fill:#4ec9b0,color:#fff
+    style B fill:#569cd6,color:#fff
+    style C fill:#ce9178,color:#fff
+    style D fill:#569cd6,color:#fff
+    style E fill:#4ec9b0,color:#fff
+```
+
+<!-- Speaker notes: This is a live diagram template slide. The flowchart above was rendered server-side by mermaid-cli during the render pass and is embedded as SVG. The caption below the diagram came from the caption: frontmatter key. The style directives apply fill colors to individual nodes. -->
 
 ---
 template: section-title
@@ -197,9 +224,9 @@ template: section-title
 
 ## Content
 
-Formatting, lists, code blocks, and images
+Formatting, lists, code blocks, images, and tables
 
-<!-- Speaker notes: This section demonstrates the content types that work inside any template body. All standard CommonMark inline elements are supported: bold, italic, inline code, links, and strikethrough. Block elements include lists (ordered, unordered, nested), code blocks with syntax highlighting, and images. -->
+<!-- Speaker notes: This section demonstrates every content type. All standard CommonMark inline elements work in any template body or two-column column. Block elements include code blocks with syntax highlighting, ordered and unordered lists with nesting, images by path or data URL, and markdown tables. -->
 
 ---
 template: two-column
@@ -211,23 +238,21 @@ template: two-column
 **Bold** text
 *Italic* text
 `Inline code`
-[Link](https://example.com)
+[Link text](https://example.com)
 ~~Strikethrough~~
 ```
 
-These are standard CommonMark.
-All work inside body and columns.
+All standard CommonMark. Work in body, columns, and headings.
 
 ---column---
 
 **Bold** text
 *Italic* text
 `Inline code`
-[Link](https://github.com/TJMSolns/MD-Slides)
+[Link text](https://github.com/TJMSolns/MD-Slides)
 ~~Strikethrough~~
 
-The left column shows the markdown.
-The right column is that same markdown rendered.
+The left shows the markdown you type. The right column is that same markdown rendered.
 
 <!-- Speaker notes: All standard CommonMark inline elements are supported. The same formatting works in title subtitles, content bodies, column content, and speaker notes (though notes are plain text in the speaker view panel). -->
 
@@ -245,7 +270,7 @@ template: two-column
 
 1. Ordered first
 2. Ordered second
-   - Mixed with unordered
+   - Mixed nesting
 ```
 
 ---column---
@@ -257,17 +282,17 @@ template: two-column
 
 1. Ordered first
 2. Ordered second
-   - Mixed with unordered
+   - Mixed nesting
 
-<!-- Speaker notes: Lists support up to 3 levels of nesting. Ordered and unordered lists can be mixed at nested levels. List style (disc, circle, square) is controlled by the theme CSS. Ordered lists maintain their source numbering. -->
+<!-- Speaker notes: Lists support up to 3 levels of nesting. Ordered and unordered lists can be mixed at nested levels. List style (disc, circle, square) is controlled by theme CSS. -->
 
 ---
 template: content
 ---
 
-## Code blocks: Scala
+## Code blocks: syntax highlighting
 
-Fenced code blocks with a language name get full syntax highlighting:
+Fenced code blocks with a language name get full syntax highlighting. Specify the language immediately after the opening triple backtick:
 
 ```scala
 case class Slide(id: SlideId, template: Template, slots: Map[SlotName, SlotContent])
@@ -281,9 +306,9 @@ object SlideDeck:
     )
 ```
 
-This is real domain code from MD-Slides — pure Scala 3, no I/O.
+190+ languages supported via highlight.js.
 
-<!-- Speaker notes: Code blocks use highlight.js for client-side syntax highlighting. The language name after the opening triple backtick determines the highlighter. Supported languages include Scala, Java, Python, JavaScript, TypeScript, Bash, SQL, JSON, YAML, and 190+ others. Code blocks scale automatically to fit the slide width. -->
+<!-- Speaker notes: This code block is the demonstration — you're looking at syntax-highlighted Scala 3. The language identifier after the opening fence selects the highlighter. highlight.js runs client-side and supports Scala, Java, Python, JavaScript, TypeScript, Bash, SQL, JSON, YAML, and 190+ others. Code blocks auto-scale to fit slide width. -->
 
 ---
 template: two-column
@@ -295,12 +320,12 @@ template: two-column
 def contrast_ratio(fg, bg):
     l1 = luminance(fg)
     l2 = luminance(bg)
-    lighter = max(l1, l2)
-    darker  = min(l1, l2)
-    return (lighter + 0.05) / (darker + 0.05)
+    brighter = max(l1, l2)
+    darker   = min(l1, l2)
+    return (brighter + 0.05) / (darker + 0.05)
 
 # WCAG AA: 4.5:1 for normal text
-assert contrast_ratio('#000', '#FFF') >= 4.5
+assert contrast_ratio('#000','#fff') >= 4.5
 ```
 
 ---column---
@@ -312,90 +337,66 @@ curl -L https://github.com/TJMSolns/\
   download/md-slides.jar \
   -o md-slides.jar
 
-# Render a presentation
-java -jar md-slides.jar render \
-  my-talk --theme dark
+# Render with dark theme
+java -jar md-slides.jar \
+  render my-talk --theme dark
 ```
 
-<!-- Speaker notes: Any language supported by highlight.js works — just use the correct language identifier after the opening triple backtick. The highlighting is fully theme-aware: the light theme uses a light code background and the dark theme uses a dark code background. -->
+<!-- Speaker notes: Any language supported by highlight.js works — just use the correct identifier after the opening fence. Python and Bash are shown here because they appear frequently in real presentations: Python for algorithms, Bash for CLI examples. The two-column layout lets you show two different languages side by side. -->
 
 ---
-template: content
+template: two-column
 ---
 
-## Images
-
-Images embed with standard markdown syntax:
+## Images: you write / you get
 
 ```markdown
 ![MD-Slides logo](./images/logo.svg)
 ```
 
-MD-Slides copies image files to the output directory automatically. Alt text is required — the validator flags missing alt text as an accessibility error.
+Path is relative to the `.md` source file. MD-Slides copies the file to the output directory automatically.
 
-For fully self-contained files (no image folder needed), embed images as base64 data URLs:
+**Alt text is required** — the validator reports missing alt text as an accessibility error (WCAG 2.1).
+
+For self-contained files, embed as a data URL: `![alt](data:image/svg+xml;base64,...)`
+
+---column---
+
+![MD-Slides logo](data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgODAiIHdpZHRoPSIyMDAiIGhlaWdodD0iODAiPgogIDxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iODAiIHJ4PSI4IiBmaWxsPSIjMWUxZTFlIi8+CiAgPHRleHQgeD0iMjAiIHk9IjMwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjEzIiBmaWxsPSIjNGVjOWIwIj5NRDwvdGV4dD4KICA8dGV4dCB4PSI0OCIgeT0iMzAiIGZvbnQtZmFtaWx5PSJtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTMiIGZpbGw9IiNkNGQ0ZDQiPi1TbGlkZXM8L3RleHQ+CiAgPHRleHQgeD0iMjAiIHk9IjUyIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjEwIiBmaWxsPSIjNmE5OTU1Ij4vLyBtYXJrZG93biDihpIgcHJlc2VudGF0aW9uczwvdGV4dD4KICA8cmVjdCB4PSIyMCIgeT0iNjAiIHdpZHRoPSIxNjAiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM1NjljZDYiLz4KPC9zdmc+Cg==)
+
+The image above is rendered from a base64 data URL — no external file needed. The left column shows the markdown you write; this right column is the rendered result.
+
+<!-- Speaker notes: Local images are copied to the output directory during render. Base64 data URLs are embedded inline — this feature-tour.md is fully self-contained because both images use data URLs. Alt text is validated against WCAG 2.1 accessibility requirements. Missing alt text is reported as a validation error and blocks rendering. -->
+
+---
+template: two-column
+---
+
+## Tables: you write / you get
 
 ```markdown
-![Logo](data:image/svg+xml;base64,PHN2ZyB4bWxucy...)
+| Template | Max body | Used for |
+|----------|----------|----------|
+| `title` | — | Opening slide |
+| `content` | 12 ln / 150 w | Most slides |
+| `two-column` | 10 ln / 75 w | Comparisons |
+| `diagram` | — | Mermaid charts |
+| `closing` | 12 ln / 150 w | Final slide |
 ```
 
-<!-- Speaker notes: Image files referenced by path are copied to the output directory during render. Base64 data URLs are embedded inline — useful for single-file distributions like this feature tour. Alt text validates against WCAG 2.1 accessibility requirements. Missing alt text is reported as a validation error and blocks rendering. -->
+Column alignment: `|:---:|` center, `|---:|` right.
 
----
-template: content
----
+---column---
 
-## Images in action
+| Template | Max body | Used for |
+|----------|----------|----------|
+| `title` | — | Opening slide |
+| `content` | 12 ln / 150 w | Most slides |
+| `two-column` | 10 ln / 75 w | Comparisons |
+| `diagram` | — | Mermaid charts |
+| `closing` | 12 ln / 150 w | Final slide |
 
-The MD-Slides logo, embedded as a base64 data URL — no separate image file needed:
-
-![MD-Slides logo](data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgODAiIHdpZHRoPSIyMDAiIGhlaWdodD0iODAiPgogIDxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iODAiIHJ4PSI4IiBmaWxsPSIjMWUxZTFlIi8+CiAgPHRleHQgeD0iMjAiIHk9IjMwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjEzIiBmaWxsPSIjNGVjOWIwIj5NRDwvdGV4dD4KICA8dGV4dCB4PSI0OCIgeT0iMzAiIGZvbnQtZmFtaWx5PSJtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTMiIGZpbGw9IiNkNGQ0ZDQiPi1TbGlkZXM8L3RleHQ+CiAgPHRleHQgeD0iMjAiIHk9IjUyIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjEwIiBmaWxsPSIjNmE5OTU1Ii8vIG1hcmtkb3duIOKGkiBwcmVzZW50YXRpb25zPC90ZXh0PgogIDxyZWN0IHg9IjIwIiB5PSI2MCIgd2lkdGg9IjE2MCIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzU2OWNkNiIvPgo8L3N2Zz4=)
-
-The same technique makes `feature-tour.md` downloadable as a single file — no companion assets.
-
-<!-- Speaker notes: This logo is the same SVG from examples/images/logo.svg, converted to a base64 data URL. The render pipeline supports both: file-referenced images are copied to the output directory, and data URLs are passed through unchanged. This slide demonstrates that images fully work in the rendered presentation. -->
-
----
-template: content
----
-
-## Tables
-
-Standard markdown table syntax, rendered with styled HTML:
-
-```markdown
-| Template | Slots | Max body |
-|----------|-------|----------|
-| title | title, subtitle, author | — |
-| content | heading, body | 12 lines / 150 words |
-| two-column | heading, left, right | 10 lines / 75 words each |
-| section-title | heading, body | same as content |
-| closing | heading, body | same as content |
-| diagram | heading, diagram | — |
-```
-
-Column alignment is controlled by `:` in the separator row: left (default), `:---:` center, `---:` right.
-
-<!-- Speaker notes: Tables are rendered as semantic HTML with <thead> and <tbody>. Bold text, inline code, and links all work inside table cells. Column alignment is applied as CSS text-align. Tables count against density limits — a 12-row table plus other content will trigger a density warning. -->
-
----
-template: content
----
-
-## Tables in action
-
-| Template | Slots | Max body |
-|----------|-------|----------|
-| `title` | title, subtitle, author | — |
-| `content` | heading, body | 12 lines / 150 words |
-| `two-column` | heading, left, right | 10 lines / 75 words each |
-| `section-title` | heading, body | same as content |
-| `closing` | heading, body | same as content |
-| `diagram` | heading, diagram | — |
-
-The same table from the previous slide — rendered, not source. Inline code in cells works.
-
-<!-- Speaker notes: This is the rendered version of the table from the previous slide. The two slides together demonstrate the same pattern used for inline formatting earlier: source code on one slide, rendered result on the next. Tables with many columns may benefit from the two-column layout to show source on the left and result on the right. -->
+<!-- Speaker notes: Tables render as semantic HTML with thead and tbody. Inline code, bold, and links work inside cells. Tables count against body density limits — a long table plus other body content will trigger a warning. -->
 
 ---
 template: section-title
@@ -408,41 +409,52 @@ Notes, next-slide preview, and elapsed timer
 <!-- Speaker notes: Speaker view opens in a separate window synchronized to the main presentation via BroadcastChannel. The speaker window shows: current slide (small), next slide heading, speaker notes for the current slide, and an elapsed timer. Navigation in either window keeps both in sync. -->
 
 ---
-template: content
+template: two-column
 ---
 
-## Adding speaker notes
-
-Add notes to any slide with an HTML comment:
+## Speaker notes: you write / you get
 
 ```markdown
-<!-- Speaker notes: The key point here is X. Don't forget to mention Y. -->
+<!-- Speaker notes: The key point
+here is X. Don't forget to mention Y.
+Notes can span multiple lines. -->
 ```
 
-Notes appear only in speaker view — never in the main presentation. They can be as long as needed. The comment can appear anywhere in the slide body.
+Place the comment anywhere in the slide body. Notes support plain text of any length.
 
-Press **S** during the presentation to open speaker view in a new window. Navigation in either window keeps both synchronized.
+Press **S** during the presentation to open speaker view.
 
-<!-- Speaker notes: This is a speaker note. You're reading it right now in speaker view. Notes support plain text — markdown formatting inside the comment is not rendered. The BroadcastChannel API keeps main and speaker windows synchronized without any server. -->
+---column---
+
+**In speaker view, you see:**
+
+- Current slide (small preview)
+- Next slide heading
+- Your notes for the current slide
+- Elapsed timer
+
+Notes are **never** visible in the main presentation window.
+
+This slide has speaker notes — press **S** to see them.
+
+<!-- Speaker notes: You found the speaker notes for this slide. This is what appears in speaker view — only you see this text. The audience sees only the slide content. The notes on the left column are the literal markdown syntax; the right column describes where they appear. -->
 
 ---
 template: content
 ---
 
-## Speaker view layout
+## Speaker view layout and timer
 
-The speaker window shows four panels:
+The speaker window shows four panels in a fixed layout:
 
 1. **Current slide** — small preview of what the audience sees
-2. **Next slide heading** — what's coming so you can bridge smoothly
-3. **Speaker notes** — your notes for the current slide
-4. **Elapsed timer** — tracks how long you've been presenting
+2. **Next slide heading** — so you can bridge transitions smoothly
+3. **Speaker notes** — your notes for this slide
+4. **Elapsed timer** — tracks time from first navigation
 
-The timer starts on first navigation and pauses during break mode. Press **T** to pause or resume manually; press **R** to reset to 00:00:00.
+The timer pauses automatically during break mode. Manual controls: **T** pauses/resumes, **R** resets to 00:00:00. Use `{{timer}}` in headers/footers to display the live value.
 
-The timer value can be displayed in slide headers and footers via the `{{timer}}` placeholder.
-
-<!-- Speaker notes: The speaker view timer is separate from any header/footer timer display. The header/footer shows the same value. Press T to pause the timer if you need to stop the clock without entering full break mode. Press R to reset if you're practicing and want to start the clock fresh. -->
+<!-- Speaker notes: The speaker view timer is separate from any header/footer timer display but shows the same value. Press T to pause without entering full break mode. Press R to reset if you're rehearsing. The timer starts on first arrow-key or space navigation, not on page load. -->
 
 ---
 template: section-title
@@ -452,7 +464,7 @@ template: section-title
 
 Every keyboard shortcut
 
-<!-- Speaker notes: MD-Slides provides a full keyboard-driven navigation model. Basic arrow-key navigation, direct-jump goto, browser-like history, break mode, speaker view, and timer controls — all available without touching the mouse. -->
+<!-- Speaker notes: MD-Slides provides a complete keyboard-driven navigation model. Basic arrow-key navigation, speaker view, break mode, direct-jump goto, browser-like history navigation, and timer controls — all without touching the mouse. -->
 
 ---
 template: content
@@ -466,54 +478,30 @@ template: content
 | `←` | Previous slide |
 | `Home` / `End` | First / last slide |
 | `S` | Open speaker view |
-| `B` | Toggle break mode (hides slides) |
+| `B` | Toggle break mode |
 | `G` | Goto: type slide number, Enter |
 | `P` / `N` | History back / forward |
 | `T` / `R` | Pause / reset timer |
 
-<!-- Speaker notes: All shortcuts work in both the main presentation window and the speaker view window. Break mode (B) hides the slides from the audience — useful for Q&A or breaks. The timer pauses automatically during break mode. P and N provide browser-like back/forward navigation across non-linear jumps. -->
+All shortcuts work in both the main window and speaker view.
+
+<!-- Speaker notes: Arrow keys and space are the most common navigation. S opens speaker view in a new window — position it on your laptop while projecting the main view. B hides slides from the audience. P and N provide browser-like history navigation — ideal for Q&A sessions where you jump around non-linearly. -->
 
 ---
 template: content
 ---
 
-## Break mode
+## Break mode and goto
 
-Press **B** to hide slides from the audience while you take a break or answer questions.
+**Break mode (B):** Hides slides from the audience while you take a break or answer questions. The timer pauses automatically. Press B again to resume. Configure a custom break screen image in your theme JSON.
 
-During break mode:
-- The audience sees a blank or custom break screen
-- The timer pauses automatically
-- Your speaker view still shows your current slide and notes
-- Press **B** again to return to the presentation
-
-Configure a custom break screen image in your theme:
-
-```json
-{
-  "breakScreen": "images/break-screen.png"
-}
-```
-
-<!-- Speaker notes: Break mode is essential for Q&A sessions. While the audience sees a neutral screen, you can still see your current slide and notes in speaker view. The timer pause means break time doesn't count against your presentation time — your per-slide pacing data stays accurate. -->
-
----
-template: content
----
-
-## Goto and navigation history
-
-**Goto (G):** Press `G`, type a slide number, press Enter. Jumps directly to that slide. Useful when an audience member asks about a specific slide.
+**Goto (G):** Press G, type a slide number, press Enter. Jumps directly to that slide. Useful when an audience member asks about a specific slide. Uses 1-indexed numbering matching the slide counter.
 
 **History navigation (P/N):**
+- `P` — navigate to the previously visited slide (browser-like back)
+- `N` — forward through history, or linear next if no forward history
 
-`P` — navigate to the previously visited slide (browser-like back). Supports non-linear presentations and Q&A jumps.
-
-`N` — navigate forward through history (browser-like redo), or advances linearly if no forward history exists.
-
-The history stack records your full navigation path through the session, including goto jumps.
-
-<!-- Speaker notes: Goto uses 1-indexed slide numbers matching the slide counter visible in the corner. The history stack (P/N) is separate from linear navigation — P takes you back through your actual navigation path, not just to the previous numbered slide. This is valuable for non-linear presentations where you skip around or revisit earlier content. -->
+<!-- Speaker notes: Break mode is essential for Q&A sessions. While the audience sees a neutral screen, you still see your current slide and notes in speaker view. The history stack records your full navigation path — P takes you back through your actual path, not just to the previous numbered slide. Goto is invaluable when someone asks 'can you go back to slide 12?' -->
 
 ---
 template: section-title
@@ -523,41 +511,49 @@ template: section-title
 
 render, display, report, and smart default
 
-<!-- Speaker notes: MD-Slides has four CLI commands, though you'll use render the most. The display command starts a tracked session. Report analyzes past sessions. The smart default (no subcommand) picks render or display automatically based on context. -->
-
----
-template: content
----
-
-## render — convert and open
-
-`render` converts a markdown file to HTML:
-
-```bash
-java -jar md-slides.jar render my-talk --theme dark
-```
-
-Output goes to `my-talk/` — a self-contained directory containing `index.html`, `speaker.html`, and any copied image assets.
-
-The deck name argument is path-flexible:
-- `my-talk` finds `my-talk.md` or `my-talk.markdown`
-- `talks/my-talk` looks in a subdirectory
-- Full paths work too
-
-<!-- Speaker notes: The render command validates before rendering. If validation fails, all errors are printed together and no output is written. Fix all the errors and run again. The output directory is created if it doesn't exist. Existing output is overwritten without warning. -->
+<!-- Speaker notes: MD-Slides has four CLI usage patterns. render is the core. display adds session logging. report analyzes past sessions. The smart default picks render or display automatically. -->
 
 ---
 template: two-column
 ---
 
-## display — tracked session
+## render: convert markdown to HTML
 
 ```bash
+java -jar md-slides.jar render my-talk
+java -jar md-slides.jar render my-talk \
+  --theme dark
+```
+
+Output: `my-talk/` directory containing `index.html`, `speaker.html`, and copied image assets.
+
+Path flexibility: `my-talk`, `my-talk.md`, and `talks/my-talk` all resolve correctly.
+
+---column---
+
+```
+my-talk/
+  index.html      ← main presentation
+  speaker.html    ← speaker view
+  images/         ← copied assets
+```
+
+Validates before rendering — all errors shown together. No output written until every slide passes.
+
+<!-- Speaker notes: The render command validates first. If validation fails, all errors are printed together and nothing is written. Fix everything and run again. The output directory is created if it doesn't exist. Existing output is overwritten without warning — there's no incremental update. -->
+
+---
+template: two-column
+---
+
+## display and report: tracked sessions
+
+```bash
+# Open with session logging
 java -jar md-slides.jar display my-talk
 ```
 
-Opens the presentation **and logs events** to `my-talk/deck.log`:
-
+Writes events to `my-talk/deck.log`:
 - Navigation events (with method)
 - Timer start / pause / resume
 - Break mode toggles
@@ -566,38 +562,37 @@ Opens the presentation **and logs events** to `my-talk/deck.log`:
 ---column---
 
 ```bash
-# After presenting, analyze the log
+# After presenting, analyze
 java -jar md-slides.jar report my-talk
 ```
 
-**Report shows:**
-- Total presentation time
+Report shows:
+- Total time (excl. breaks)
 - Per-slide time spent
-- Navigation path
-- Break duration
+- Navigation path taken
+- Break durations
 
-Use `report` to understand pacing and improve future presentations.
+Review after each talk to improve pacing.
 
-<!-- Speaker notes: The display command is identical to render in every way, but additionally enables session logging to deck.log. The report command reads that log and generates analytics. Over multiple presentations you can track improvement in pacing and identify which slides consistently run long. -->
+<!-- Speaker notes: The display command is identical to render in every way but enables session logging. The report command reads the log and generates analytics. Over multiple presentations you can track improvement in pacing and identify which slides consistently run long. -->
 
 ---
 template: content
 ---
 
-## Smart default — no subcommand needed
+## Smart default: no subcommand needed
 
 MD-Slides is smart about what you want:
 
 ```bash
-# These all do what you expect:
 java -jar md-slides.jar my-talk            # → render
 java -jar md-slides.jar my-talk.md         # → render
 java -jar md-slides.jar my-talk --display  # → display with logging
 ```
 
-If the output directory already exists and contains a `deck.log`, the smart default switches to `display` automatically — it assumes you're presenting, not just rendering.
+If the output directory already contains a `deck.log`, the smart default switches to `display` automatically — it assumes you're presenting an existing deck, not doing a first render.
 
-<!-- Speaker notes: The smart default reduces friction for the common case. Most of the time you just want to render and open. The --display flag explicitly opts into session logging. The auto-detection based on deck.log presence is a convenience for repeat presentations of the same deck. -->
+<!-- Speaker notes: The smart default reduces friction. Most of the time you just want to render and view. The --display flag explicitly opts into session logging. The auto-detection based on deck.log is a convenience for repeat presentations of the same deck. -->
 
 ---
 template: section-title
@@ -615,20 +610,18 @@ template: content
 
 ## Built-in themes
 
-MD-Slides ships with two themes:
-
 ```bash
 java -jar md-slides.jar render my-talk --theme light  # default
 java -jar md-slides.jar render my-talk --theme dark
 ```
 
-The **light** theme: white background, dark text, blue accents — clean and professional for most venues.
+**light** — white background, dark text, blue accents. Clean and professional for most venues.
 
-The **dark** theme: dark background, light text, teal accents — high contrast for dark rooms and screen sharing.
+**dark** — dark background, light text, teal accents. High contrast for dark rooms and screen sharing.
 
-Both themes apply consistent syntax highlighting, slide counters, and speaker view styling.
+Both themes pass WCAG 2.1 AA contrast requirements.
 
-<!-- Speaker notes: The light theme is the default when no theme is specified. The dark theme is recommended for conference rooms with poor lighting or for screen-sharing where a dark background reads better on compressed video. Both themes pass WCAG 2.1 AA contrast requirements. -->
+<!-- Speaker notes: The light theme is the default when no theme is specified. The dark theme is recommended for conference rooms with poor lighting or for screen-sharing where a dark background reads better on compressed video. Both themes apply consistent syntax highlighting, slide counters, and speaker view styling. -->
 
 ---
 template: two-column
@@ -639,14 +632,13 @@ template: two-column
 ```json
 {
   "name": "mytheme",
-  "version": "1.0.0",
-  "background": { "color": "#ffffff" },
+  "background": { "color": "#fff" },
   "colors": {
-    "text": "#333333",
-    "heading": "#000000",
+    "text": "#333",
+    "heading": "#000",
     "accent": "#0066cc",
     "codeBackground": "#f5f5f5",
-    "codeText": "#333333"
+    "codeText": "#333"
   },
   "fonts": {
     "body": "Arial, sans-serif",
@@ -661,70 +653,67 @@ template: two-column
 ```json
   "spacing": {
     "slideMargin": "2rem",
-    "headingMargin": "1rem 0",
     "lineHeight": "1.6"
   },
   "syntax": {
     "keyword": "#0000ff",
     "string": "#00aa00",
-    "comment": "#888888",
-    "function": "#aa00aa"
+    "comment": "#888888"
   },
-  "slideCounter": {
-    "color": "#666666",
-    "fontSize": "0.9rem"
-  }
-}
-```
-
-Save as `mytheme/theme.json`. Use with `--theme ./mytheme/theme.json`.
-
-<!-- Speaker notes: Custom themes can override any visual property. You don't need to specify everything — unspecified properties fall back to the built-in defaults. The breakScreen key in the theme JSON sets the image displayed during break mode. Per-template background images are configured under templateConfigurations in the theme JSON. -->
-
----
-template: content
----
-
-## Per-template backgrounds and header/footer
-
-Themes support per-template background images:
-
-```json
-{
+  "breakScreen": "images/break.png",
   "templateConfigurations": [
     {
       "template": "section-title",
-      "background": { "image": "images/section-bg.png" },
-      "header": "My Talk — {{pageNumber}}/{{totalPages}}",
+      "background": { "image": "bg.png" },
+      "header": "{{pageNumber}}/{{totalPages}}",
       "footer": "{{timer}}"
     }
   ]
 }
 ```
 
-Available header/footer tokens: `{{pageNumber}}`, `{{totalPages}}`, `{{timer}}`, `{{date}}`
+Save as `mytheme/theme.json`. Use with `--theme ./mytheme/theme.json`.
 
-Headers and footers can also be set per-slide in frontmatter.
-
-<!-- Speaker notes: Per-template configuration lets section-title slides have a dramatic background image while content slides stay clean. The header/footer tokens are resolved at runtime — pageNumber and totalPages update as you navigate, and timer updates each second. Headers and footers configured in the theme apply to all slides of that template type. Per-slide frontmatter overrides the theme setting for individual slides. -->
+<!-- Speaker notes: Custom themes override any visual property. You only need to specify what you want to change — everything else falls back to built-in defaults. The templateConfigurations array sets per-template backgrounds and header/footer for specific slide types. -->
 
 ---
 template: content
-header: Feature Tour — Slide {{pageNumber}} of {{totalPages}}
+header: Feature Tour — Slide {pageNumber} of {totalPages}
 ---
 
-## Per-slide header: live demo
+## Per-slide header and footer: live demo
 
 This slide carries a `header:` key in its frontmatter:
 
-```markdown
+```
 template: content
 header: Feature Tour — Slide {{pageNumber}} of {{totalPages}}
 ```
 
-Look at the top of this slide — the header is rendered there, with `{{pageNumber}}` and `{{totalPages}}` resolved to real values. Per-slide frontmatter overrides anything set in the theme for that one slide.
+Look at the top of this slide — that header is rendered there, with `{{pageNumber}}` and `{{totalPages}}` resolved to real values at runtime.
 
-<!-- Speaker notes: The header at the top of this slide came from frontmatter, not from the theme. This is the most direct way to demonstrate the feature — the slide itself is the demo. Per-slide header/footer is useful for slides that need special labeling: draft watermarks, confidential markers, or per-section labels. -->
+The same works for `footer:`. Per-slide frontmatter overrides the theme for that one slide.
+
+<!-- Speaker notes: The header at the top of this slide came from frontmatter, not from the theme. This is the most direct way to demonstrate the feature — the slide itself is the demo. Available tokens: pageNumber, totalPages, timer, date. Multi-element footers use span tags with footer-left, footer-center, footer-right CSS classes. -->
+
+---
+template: content
+---
+
+## Vertical alignment
+
+Content position is controllable per-slide via frontmatter:
+
+```
+template: content
+vertical-align: top
+```
+
+Three options: `top` · `center` (default) · `bottom`
+
+Useful for sparse slides where centered text looks visually unbalanced, or for slides with code blocks that benefit from a predictable top position.
+
+<!-- Speaker notes: Vertical alignment affects the main content area. Headers and footers are positioned independently. The center default works well for most slides. Use top for slides with code blocks or tables that benefit from predictable position. -->
 
 ---
 template: content
@@ -736,41 +725,16 @@ MD-Slides applies configuration in priority order (highest wins):
 
 1. **CLI flags** — `--theme dark`, `--output-dir dist`
 2. **Project config** — `.mdslides/config.json` committed with your repo
-3. **Global config** — `~/.mdslides/config.json` for personal preferences
+3. **Global config** — `~/.mdslides/config.json` personal preferences
 4. **Built-in defaults** — always present as the base
 
 ```json
-{
-  "theme": "dark",
-  "outputDir": "dist"
-}
+{ "theme": "dark", "outputDir": "dist" }
 ```
 
-Commit the project config to version control so everyone on the team renders the same way.
+Commit project config to version control so everyone on the team renders with the same theme.
 
-<!-- Speaker notes: The four-layer hierarchy solves a real problem: you want team-wide defaults (project config), personal overrides (global config), and per-run overrides (CLI flags). A conference organizer can commit a project config with the house theme so every speaker gets it automatically. A developer can have dark theme in their global config without affecting the project default. -->
-
----
-template: content
----
-
-## Vertical alignment
-
-Content position on a slide is configurable per-slide via frontmatter:
-
-```markdown
-template: content
-vertical-align: top
-```
-
-Three options:
-- `top` — content flush to the top of the slide
-- `center` — content centered vertically (default)
-- `bottom` — content flush to the bottom
-
-Useful when mixing dense and sparse slides — `top` prevents centered text from looking visually unbalanced on a sparse slide.
-
-<!-- Speaker notes: Vertical alignment affects the main content area. Headers and footers are positioned independently. The center default works well for most slides. Use top for slides with code blocks or tables that benefit from predictable position, and for dense slides where centering would push content off-screen. -->
+<!-- Speaker notes: The four-layer hierarchy solves a real problem: you want team-wide defaults (project config), personal overrides (global config), and per-run overrides (CLI flags). A conference organizer can commit a project config with the house theme so every speaker gets it automatically. -->
 
 ---
 template: section-title
@@ -778,9 +742,9 @@ template: section-title
 
 ## Validation
 
-All errors collected and shown at once
+All errors collected and shown together
 
-<!-- Speaker notes: MD-Slides validates every slide before rendering anything. Rather than stopping at the first error, it collects all validation errors and reports them together. This means you see every problem in one pass and can fix them all before running again. -->
+<!-- Speaker notes: MD-Slides validates every slide before rendering anything. Rather than stopping at the first error, it collects all validation errors and reports them together. This means you see every problem in one pass and can fix them all before running again. This is the Either[NonEmptyList[ValidationError], SlideDeck] pattern in the domain layer. -->
 
 ---
 template: content
@@ -792,11 +756,11 @@ MD-Slides checks every slide before rendering:
 
 **Structure:** required slots present, template declared, frontmatter well-formed
 
-**Density:** heading within 80 characters; body within 12 lines and 150 words; columns within 10 lines and 75 words per column
+**Density:** heading ≤ 80 chars; body ≤ 12 lines and 150 words; columns ≤ 10 lines and 75 words each
 
 **Accessibility:** images have alt text; contrast ratios meet WCAG 2.1 AA
 
-**Template-specific:** title H1 within 2 lines; subtitle within 2 lines; author within 80 characters
+**Template rules:** title H1 ≤ 2 lines; subtitle ≤ 2 lines; author ≤ 80 chars; two-column has exactly one `---column---`
 
 <!-- Speaker notes: Validation is not optional — every render runs all checks. The --skip-accessibility flag bypasses only the WCAG contrast checks, not structural or density validation. This means you always get feedback on content density before the audience sees your slides. -->
 
@@ -805,8 +769,6 @@ template: content
 ---
 
 ## Validation output: all errors at once
-
-When validation fails, all errors are shown together:
 
 ```
 ✗ Validation failed:
@@ -818,7 +780,9 @@ When validation fails, all errors are shown together:
 
 Fix all of them, then render again. No output is written until every slide passes.
 
-<!-- Speaker notes: The error accumulation design — Either[NonEmptyList[ValidationError], SlideDeck] in Scala 3 — is a deliberate architectural choice. Stopping at the first error would mean a loop of: fix, render, find next error, fix, render. Showing everything at once respects your time. -->
+The domain model uses `Either[NonEmptyList[ValidationError], SlideDeck]` — errors accumulate rather than short-circuit.
+
+<!-- Speaker notes: The error accumulation design is a deliberate architectural choice. Stopping at the first error would mean a loop of: fix, render, find next error, fix, render. Showing everything at once respects your time. The NonEmptyList guarantee means a Left always has at least one error — empty error lists are a type-level impossibility. -->
 
 ---
 template: closing
@@ -829,7 +793,7 @@ template: closing
 MD-Slides: Markdown → self-contained HTML presentations
 
 **All templates** · title, content, section-title, two-column, diagram, closing
-**All content types** · formatting, lists, code (190+ languages), images
+**All content types** · formatting, lists, code (190+ languages), images, tables, Mermaid
 **Navigation** · arrows, goto (G), history (P/N), break (B), timer (T/R)
 **Speaker view** · notes, next-slide preview, elapsed timer, synchronized
 **Themes** · light, dark, custom JSON, per-template backgrounds, tokens
