@@ -15,65 +15,30 @@ MD-Slides converts structured Markdown files into self-contained HTML presentati
 **Requirements:** Java 11 or higher.
 
 ```bash
-# Download the JAR
+# Download the JAR and the feature tour (a self-contained 21-slide demo)
 curl -L https://github.com/TJMSolns/MD-Slides/releases/latest/download/md-slides.jar -o md-slides.jar
-```
+curl -L https://github.com/TJMSolns/MD-Slides/releases/latest/download/feature-tour.md -o feature-tour.md
 
-Create `my-talk.md`:
-
-```markdown
----
-template: title
----
-
-# My Talk
-
-## A subtitle
-
-**Your Name**
-
----
-template: content
----
-
-## First slide
-
-Write your content here.
-
-- One idea per bullet
-- Short phrases work best
-
----
-template: closing
----
-
-## Thanks
-
-Questions?
-```
-
-Render and open:
-
-```bash
-java -jar md-slides.jar render my-talk --theme light
-open my-talk/index.html          # macOS
-xdg-open my-talk/index.html     # Linux
-start my-talk/index.html         # Windows
-```
-
-`my-talk/` is a self-contained output directory — `index.html` plus all copied assets.
-
-### See all features in action
-
-[`examples/feature-tour.md`](examples/feature-tour.md) is a 21-slide deck that exercises every template, content element, image, speaker notes, and theme option. To run it, clone the repo (which includes the image assets it references):
-
-```bash
-git clone https://github.com/TJMSolns/MD-Slides.git
-java -jar md-slides.jar render MD-Slides/examples/feature-tour --theme dark
-open MD-Slides/examples/feature-tour/index.html
+# Render and open
+java -jar md-slides.jar render feature-tour --theme dark
+open feature-tour/index.html          # macOS
+xdg-open feature-tour/index.html     # Linux
+start feature-tour/index.html         # Windows
 ```
 
 Press **S** to open speaker view — the feature tour has notes on every slide.
+
+The feature tour exercises every template, content type, image, speaker notes, code block, two-column layout, theme, and validation rule. It's the fastest way to see what MD-Slides can do.
+
+### Writing your own slides
+
+Once you've seen the tour, create your own deck — `my-talk.md` anywhere next to the JAR:
+
+```bash
+java -jar md-slides.jar render my-talk --theme light
+```
+
+`my-talk/` is a self-contained output directory — `index.html` plus all copied assets. See [Writing slides](#writing-slides) below for the full syntax.
 
 ---
 
