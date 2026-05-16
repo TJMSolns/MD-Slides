@@ -356,6 +356,48 @@ The same technique makes `feature-tour.md` downloadable as a single file — no 
 <!-- Speaker notes: This logo is the same SVG from examples/images/logo.svg, converted to a base64 data URL. The render pipeline supports both: file-referenced images are copied to the output directory, and data URLs are passed through unchanged. This slide demonstrates that images fully work in the rendered presentation. -->
 
 ---
+template: content
+---
+
+## Tables
+
+Standard markdown table syntax, rendered with styled HTML:
+
+```markdown
+| Template | Slots | Max body |
+|----------|-------|----------|
+| title | title, subtitle, author | — |
+| content | heading, body | 12 lines / 150 words |
+| two-column | heading, left, right | 10 lines / 75 words each |
+| section-title | heading, body | same as content |
+| closing | heading, body | same as content |
+| diagram | heading, diagram | — |
+```
+
+Column alignment is controlled by `:` in the separator row: left (default), `:---:` center, `---:` right.
+
+<!-- Speaker notes: Tables are rendered as semantic HTML with <thead> and <tbody>. Bold text, inline code, and links all work inside table cells. Column alignment is applied as CSS text-align. Tables count against density limits — a 12-row table plus other content will trigger a density warning. -->
+
+---
+template: content
+---
+
+## Tables in action
+
+| Template | Slots | Max body |
+|----------|-------|----------|
+| `title` | title, subtitle, author | — |
+| `content` | heading, body | 12 lines / 150 words |
+| `two-column` | heading, left, right | 10 lines / 75 words each |
+| `section-title` | heading, body | same as content |
+| `closing` | heading, body | same as content |
+| `diagram` | heading, diagram | — |
+
+The same table from the previous slide — rendered, not source. Inline code in cells works.
+
+<!-- Speaker notes: This is the rendered version of the table from the previous slide. The two slides together demonstrate the same pattern used for inline formatting earlier: source code on one slide, rendered result on the next. Tables with many columns may benefit from the two-column layout to show source on the left and result on the right. -->
+
+---
 template: section-title
 ---
 
@@ -665,6 +707,24 @@ Available header/footer tokens: `{{pageNumber}}`, `{{totalPages}}`, `{{timer}}`,
 Headers and footers can also be set per-slide in frontmatter.
 
 <!-- Speaker notes: Per-template configuration lets section-title slides have a dramatic background image while content slides stay clean. The header/footer tokens are resolved at runtime — pageNumber and totalPages update as you navigate, and timer updates each second. Headers and footers configured in the theme apply to all slides of that template type. Per-slide frontmatter overrides the theme setting for individual slides. -->
+
+---
+template: content
+header: Feature Tour — Slide {{pageNumber}} of {{totalPages}}
+---
+
+## Per-slide header: live demo
+
+This slide carries a `header:` key in its frontmatter:
+
+```markdown
+template: content
+header: Feature Tour — Slide {{pageNumber}} of {{totalPages}}
+```
+
+Look at the top of this slide — the header is rendered there, with `{{pageNumber}}` and `{{totalPages}}` resolved to real values. Per-slide frontmatter overrides anything set in the theme for that one slide.
+
+<!-- Speaker notes: The header at the top of this slide came from frontmatter, not from the theme. This is the most direct way to demonstrate the feature — the slide itself is the demo. Per-slide header/footer is useful for slides that need special labeling: draft watermarks, confidential markers, or per-section labels. -->
 
 ---
 template: content
