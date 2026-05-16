@@ -52,7 +52,7 @@ object PathResolver:
     else
       ""
 
-    Left(s"✗ Input file not found: $deckName (tried as-is, .md, .markdown)$availableList")
+    Left(s"✗ Input file not found: $deckName (tried $deckName, $deckName.md, $deckName.markdown)$availableList")
 
   /**
    * Determine output directory path from deck name.
