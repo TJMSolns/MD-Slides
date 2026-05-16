@@ -15,16 +15,26 @@ MD-Slides converts structured Markdown files into self-contained HTML presentati
 **Requirements:** Java 11 or higher.
 
 ```bash
-# 1. Download the latest release JAR
+# 1. Download the JAR and the example deck
 curl -L https://github.com/TJMSolns/MD-Slides/releases/latest/download/md-slides.jar -o md-slides.jar
+git clone https://github.com/TJMSolns/MD-Slides.git
 
-# 2. Render a presentation
+# 2. Render the feature tour — exercises every template and feature
+java -jar md-slides.jar render MD-Slides/examples/feature-tour --theme dark
+
+# 3. Open it
+open MD-Slides/examples/feature-tour/index.html      # macOS
+xdg-open MD-Slides/examples/feature-tour/index.html  # Linux
+start MD-Slides/examples/feature-tour/index.html      # Windows
+```
+
+Press **S** in the presentation to open speaker view. The feature tour has notes on every slide.
+
+Once you've seen it running, write your own — `my-talk.md` next to `md-slides.jar`, then:
+
+```bash
 java -jar md-slides.jar render my-talk --theme light
-
-# 3. Open in your browser
-open my-talk/index.html          # macOS
-xdg-open my-talk/index.html     # Linux
-start my-talk/index.html         # Windows
+open my-talk/index.html
 ```
 
 `my-talk.md` is your markdown source; `my-talk/` is the generated output directory containing `index.html` and all copied assets.
@@ -79,6 +89,8 @@ Render it:
 ```bash
 java -jar md-slides.jar render my-talk --theme dark
 ```
+
+For a working reference that exercises every template and feature, see [`examples/feature-tour.md`](examples/feature-tour.md).
 
 ### Keyboard controls
 
