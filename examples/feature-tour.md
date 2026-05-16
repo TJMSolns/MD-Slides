@@ -219,6 +219,25 @@ graph LR
 <!-- Speaker notes: This is a live diagram template slide. The flowchart above was rendered server-side by mermaid-cli during the render pass and is embedded as SVG. The caption below the diagram came from the caption: frontmatter key. The style directives apply fill colors to individual nodes. -->
 
 ---
+template: content
+---
+
+## Frontmatter: complete key reference
+
+Every slide opens with a frontmatter block between `---` markers. Supported keys:
+
+| Key | Required | Description |
+|-----|----------|-------------|
+| `template:` | yes | Slide type: `title` `content` `section-title` `two-column` `diagram` `closing` |
+| `header:` | no | Top bar text — tokens: `{{pageNumber}}` `{{totalPages}}` `{{timer}}` `{{date}}` |
+| `footer:` | no | Bottom bar text — same tokens as `header:` |
+| `vertical-align:` | no | Content position: `top` `center` (default) `bottom` |
+| `background:` | no | Per-slide background image path (overrides theme for this slide only) |
+| `caption:` | no | Caption below the diagram (`diagram` template only) |
+
+<!-- Speaker notes: The frontmatter block is enclosed in two --- markers — the same --- that separates slides. The first --- is both the slide separator and the frontmatter open; the second --- closes the frontmatter. Keys are case-sensitive and must appear one per line with no quotes around values. -->
+
+---
 template: section-title
 ---
 
@@ -543,6 +562,54 @@ Validates before rendering — all errors shown together. No output written unti
 <!-- Speaker notes: The render command validates first. If validation fails, all errors are printed together and nothing is written. Fix everything and run again. The output directory is created if it doesn't exist. Existing output is overwritten without warning — there's no incremental update. -->
 
 ---
+template: content
+---
+
+## render: all options
+
+| Flag | Default | Purpose |
+|------|---------|---------|
+| `--theme THEME` | `light` | Built-in name or path to `theme.json` |
+| `--no-copy-images` | copy on | Skip copying image assets to output |
+| `--skip-accessibility` | check on | Skip WCAG 2.1 AA validation |
+| `--accessibility-report FILE` | off | Write validation results to JSON |
+| `--break-screen IMAGE` | none | Image shown during break mode (B) |
+| `-i FILE` / `-o DIR` | — | Explicit input / output paths |
+
+```bash
+java -jar md-slides.jar render my-talk \
+  --theme dark \
+  --accessibility-report reports/a11y.json \
+  --break-screen images/break.png
+```
+
+<!-- Speaker notes: The explicit -i/-o form is useful when the input and output directories are not adjacent or don't share a name. --accessibility-report writes a structured JSON file you can parse or commit alongside your deck. --break-screen sets the image displayed to the audience while break mode is active (B key). -->
+
+---
+template: content
+---
+
+## config command
+
+`config` shows your merged configuration — useful for diagnosing which settings are in effect:
+
+```bash
+java -jar md-slides.jar config
+```
+
+Output shows each layer:
+
+```
+CLI: (no overrides)
+Project config (.mdslides/config.json): theme=dark
+Global config (~/.mdslides/config.json): (not set)
+Defaults: theme=light, copyImages=true, skipAccessibility=false
+Merged: theme=dark, copyImages=true, skipAccessibility=false
+```
+
+<!-- Speaker notes: The config command is a diagnostic tool. When something renders unexpectedly, run config to see exactly which settings are in effect and where they came from. The four-layer merge means a project config can override your personal global config, or a CLI flag can override both. -->
+
+---
 template: two-column
 ---
 
@@ -593,6 +660,80 @@ java -jar md-slides.jar my-talk --display  # → display with logging
 If the output directory already contains a `deck.log`, the smart default switches to `display` automatically — it assumes you're presenting an existing deck, not doing a first render.
 
 <!-- Speaker notes: The smart default reduces friction. Most of the time you just want to render and view. The --display flag explicitly opts into session logging. The auto-detection based on deck.log is a convenience for repeat presentations of the same deck. -->
+
+---
+template: two-column
+---
+
+## Distributing your presentation
+
+The output directory is **self-contained** — copy it anywhere:
+
+```bash
+# Copy to a web server
+scp -r my-talk/ user@server:/var/www/html/
+
+# Host on GitHub Pages
+# Push my-talk/ to gh-pages branch
+
+# Email: zip the folder
+zip -r my-talk.zip my-talk/
+```
+
+`index.html` opens in any browser with no server required.
+
+---column---
+
+**PDF export** — use browser print:
+
+1. Open `my-talk/index.html`
+2. File → Print (or Ctrl/Cmd + P)
+3. Destination → Save as PDF
+4. Print
+
+Or with headless Chrome:
+
+```bash
+chromium --headless \
+  --print-to-pdf=my-talk.pdf \
+  my-talk/index.html
+```
+
+Speaker notes are in `speaker.html` — not included in the PDF.
+
+<!-- Speaker notes: The output is deliberately self-contained — index.html, speaker.html, and all assets are in one directory that works without a server. For presentations hosted on GitHub Pages, put the output directory in a docs/ folder or on the gh-pages branch and point your audience at the URL. PDF export via browser print is the simplest approach; headless Chrome gives more control over page size and margins. -->
+
+---
+template: two-column
+---
+
+## Fullscreen and browser tips
+
+**Go fullscreen** during your presentation:
+
+- **F11** (Windows/Linux) or **Ctrl+Cmd+F** (Mac) — browser fullscreen
+- **F** key in some browsers — presentation mode
+
+MD-Slides keyboard shortcuts continue to work in fullscreen mode. The slide counter and speaker view both work in fullscreen.
+
+**Recommended browser:** Chrome or Firefox. Both support BroadcastChannel for speaker view sync.
+
+---column---
+
+**Opening speaker view:**
+
+1. Press **S** in the main window
+2. A new window opens — drag it to your laptop screen
+3. Navigate from either window — they stay in sync
+
+**If speaker view won't open:** Check that your browser allows popups for `file://` URLs, or serve the output over a local HTTP server:
+
+```bash
+python3 -m http.server 8080
+# then open http://localhost:8080/my-talk/
+```
+
+<!-- Speaker notes: Browser popup blockers can prevent the speaker view window from opening when serving from file:// URLs. The simplest fix is to use a local HTTP server (python3 -m http.server) which avoids the file:// restriction. Alternatively, allow popups for the file:// origin in your browser settings. -->
 
 ---
 template: section-title
@@ -677,8 +818,49 @@ Save as `mytheme/theme.json`. Use with `--theme ./mytheme/theme.json`.
 <!-- Speaker notes: Custom themes override any visual property. You only need to specify what you want to change — everything else falls back to built-in defaults. The templateConfigurations array sets per-template backgrounds and header/footer for specific slide types. -->
 
 ---
+template: two-column
+---
+
+## Per-template configuration in themes
+
+Give each template its own visual identity in `theme.json`:
+
+```json
+"templateConfigurations": [
+  {
+    "template": "section-title",
+    "background": {
+      "image": "images/section-bg.png"
+    },
+    "header": "My Talk",
+    "footer": "{{pageNumber}} / {{totalPages}}"
+  },
+  {
+    "template": "closing",
+    "background": {
+      "image": "images/closing-bg.png"
+    }
+  }
+]
+```
+
+---column---
+
+**What this does:**
+
+Every `section-title` slide gets a custom background image, header, and footer — automatically, with no per-slide frontmatter.
+
+Every `closing` slide gets its own background image.
+
+All other templates keep the theme's default background.
+
+**This is how you create a custom template appearance** — not by writing code, but by configuring each built-in template with its own background, header, and footer in the theme JSON.
+
+<!-- Speaker notes: templateConfigurations is the primary way to give a theme a distinct visual identity per section. A common pattern: section-title slides have a bold, full-bleed background that signals a major transition; content slides are clean white or dark; the closing slide has a branded image. This is all JSON configuration — no code required. -->
+
+---
 template: content
-header: Feature Tour — Slide {pageNumber} of {totalPages}
+header: Feature Tour — Slide {{pageNumber}} of {{totalPages}}
 ---
 
 ## Per-slide header and footer: live demo
