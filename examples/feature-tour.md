@@ -189,14 +189,9 @@ graph LR
     B --> C[Validator]
     C --> D[Renderer]
     D --> E[HTML output]
-    style A fill:#4ec9b0,color:#fff
-    style B fill:#569cd6,color:#fff
-    style C fill:#ce9178,color:#fff
-    style D fill:#569cd6,color:#fff
-    style E fill:#4ec9b0,color:#fff
 ```
 
-<!-- Speaker notes: This is a live diagram template slide. The flowchart was rendered server-side by mmdc during the render pass and is embedded as SVG. The caption below the diagram came from the caption: frontmatter key. Node style directives apply fill colors to individual nodes. -->
+<!-- Speaker notes: This is a live diagram template slide. The flowchart was rendered server-side by mmdc during the render pass and is embedded as SVG. The caption below the diagram came from the caption: frontmatter key. Diagram colours follow the deck theme: dark text on light shapes for light themes, light on dark for dark themes. Custom style directives work too, but check their contrast. -->
 
 ---
 template: content

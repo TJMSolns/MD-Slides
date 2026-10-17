@@ -83,7 +83,28 @@ object HTMLRenderer:
       if liveReload then meta(attr("http-equiv") := "refresh", content := "2")
       else frag()
 
-    val document = html(
+    // highlight.js token colours that miss WCAG AA on the code background are adjusted, keeping the hues.
+    // monokai-sublime (dark): keyword 4.13:1 and comment 3.19:1 on #23241f, lifted to 4.6:1.
+    // github: four token colours are below AA on light code backgrounds (#f4f4f4, #e9ecef); darken them
+    val codeContrastFix: Modifier =
+      def rule(selectors: String, colour: String) =
+        selectors.split(",").map(sel => s"pre code.hljs ${sel.trim}").mkString(", ") + s" { color: $colour; }"
+      highlightJsTheme(theme) match
+        case "monokai-sublime" =>
+          tag("style")(raw(List(
+            rule(".hljs-attr, .hljs-keyword, .hljs-name, .hljs-selector-tag", "#fa4485"),
+            rule(".hljs-comment, .hljs-deletion, .hljs-meta", "#918c75")
+          ).mkString("\n")))
+        case "github" =>
+          tag("style")(raw(List(
+            rule(".hljs-doctag, .hljs-keyword, .hljs-template-tag, .hljs-template-variable, .hljs-type, .hljs-variable.language_", "#c72838"),
+            rule(".hljs-built_in, .hljs-symbol", "#ad4b07"),
+            rule(".hljs-code, .hljs-comment, .hljs-formula", "#626a73"),
+            rule(".hljs-name, .hljs-quote, .hljs-selector-pseudo, .hljs-selector-tag, .hljs-addition", "#1e7834")
+          ).mkString("\n")))
+        case _ => frag()
+
+    val document = html(attr("lang") := "en")(
       head(
         meta(charset := "UTF-8"),
         meta(name := "viewport", content := "width=device-width, initial-scale=1.0, viewport-fit=cover"),
@@ -93,6 +114,7 @@ object HTMLRenderer:
         tag("style")(raw(generateCSS(theme))),
         // Syntax highlighting (v1.3)
         link(rel := "stylesheet", href := hljsCssUrl),
+        codeContrastFix,
         tag("script")(src := "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"),
         // Load Scala language pack (not in common bundle)
         tag("script")(src := "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/scala.min.js"),

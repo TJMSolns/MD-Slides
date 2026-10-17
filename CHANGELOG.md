@@ -29,6 +29,9 @@ documented. This release fixes them, and makes the feature tour the tutorial, ac
 - **Strikethrough** (`~~text~~`) renders.
 - **Diagrams without mermaid-cli** showed an empty box; they now show their source and an install notice.
 - Headings, captions and the author line produced invalid HTML (`<p>` inside `<h2>`).
+- **Accessibility:** pages declare their language (`lang="en"`), and syntax-highlighting colours that missed
+  WCAG 2.1 AA contrast are adjusted (dark: keywords and comments; light: keywords, built-ins, comments, tags).
+  Every slide of the feature tour now passes WCAG 2.1 AA (pa11y) in the light, dark and corporate themes.
 - **corporate theme** link/accent colour now meets WCAG 2.1 AA; the timer overlay uses the theme text colour.
 - On phones, footers keep clear of the controls bar, and wide code blocks shrink to fit.
 - `--help` showed an old version and a broken link; `config` named the product inconsistently.

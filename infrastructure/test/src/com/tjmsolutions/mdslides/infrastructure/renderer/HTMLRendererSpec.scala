@@ -32,7 +32,7 @@ class HTMLRendererSpec extends munit.FunSuite:
 
     // Check HTML structure
     assert(html.startsWith("<!DOCTYPE html>"))
-    assert(html.contains("<html>"))
+    assert(html.contains("<html lang=\"en\">"))
     assert(html.contains("</html>"))
     assert(html.contains("<head>"))
     assert(html.contains("<body>"))
