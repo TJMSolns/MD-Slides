@@ -1,0 +1,22 @@
+id: two-column
+name: Two Column Comparison
+description: Side-by-side comparison slide
+slots:
+  - name: heading
+    type: markdown_block
+    required: true
+    constraints:
+      max_lines: 1
+      recommended_heading_level: 2
+  - name: left_column
+    type: markdown_block
+    required: true
+    constraints:
+      max_lines: 10
+      max_words: 75
+  - name: right_column
+    type: markdown_block
+    required: true
+    constraints:
+      max_lines: 10
+      max_words: 75

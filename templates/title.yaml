@@ -1,0 +1,35 @@
+id: title
+name: Title Slide
+description: Primary title slide with subtitle and author
+slots:
+  - name: title
+    type: markdown_block
+    required: true
+    constraints:
+      max_lines: 2
+      recommended_heading_level: 1
+    description: Slide title (H1 recommended)
+  - name: subtitle
+    type: markdown_block
+    required: false
+    constraints:
+      max_lines: 2
+    description: Optional subtitle or tagline
+  - name: author
+    type: markdown_inline
+    required: false
+    constraints:
+      max_chars: 80
+    description: Optional author name or affiliation
+metadata:
+  version: 1.0.0
+  author: Tony Moores, TJM Solutions
+  created: 2024-12-19
+  use_cases:
+    - Deck opening slide
+    - Section title slides
+    - Cover page for presentations
+  notes: |
+    This is the primary title slide template for slide deck openings.
+    Title slot is required, subtitle and author are optional.
+    Use H1 for title for proper semantic hierarchy.

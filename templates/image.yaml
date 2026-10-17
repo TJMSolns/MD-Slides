@@ -1,0 +1,17 @@
+id: image
+name: Image Slide
+description: Slide focused on image with optional caption
+slots:
+  - name: heading
+    type: markdown_block
+    required: false
+    constraints:
+      max_lines: 1
+  - name: image
+    type: image
+    required: true
+  - name: caption
+    type: markdown_inline
+    required: false
+    constraints:
+      max_chars: 120

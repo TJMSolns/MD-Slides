@@ -1,0 +1,41 @@
+{
+  "name": "TJM Solutions",
+  "version": "1.0.0",
+  "background": {
+    "color": "#FFFFFF"
+  },
+  "templateBackgrounds": {},
+  "colors": {
+    "text": "#212121",
+    "heading": "#C00000",
+    "accent": "#C00000",
+    "link": "#C00000",
+    "linkHover": "#900000",
+    "codeBackground": "#EBEBEB",
+    "codeText": "#212121"
+  },
+  "fonts": {
+    "body": "Lato, Arial, Helvetica, sans-serif",
+    "heading": "Lato, Arial, Helvetica, sans-serif",
+    "code": "Consolas, 'Courier New', monospace"
+  },
+  "spacing": {
+    "slideMargin": "3rem",
+    "headingMargin": "1.5rem 0 1rem 0",
+    "paragraphMargin": "0.75rem 0",
+    "lineHeight": "1.7"
+  },
+  "syntax": {
+    "keyword": "#C00000",
+    "string": "#212121",
+    "comment": "#6c757d",
+    "function": "#900000",
+    "number": "#C00000",
+    "operator": "#212121"
+  },
+  "slideCounter": {
+    "color": "#FFFFFF",
+    "background": "rgba(192, 0, 0, 0.9)",
+    "fontSize": "0.9rem"
+  }
+}

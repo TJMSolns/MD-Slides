@@ -1,0 +1,107 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Agent(*)",
+      "Read",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Edit",
+      "Write",
+      "Edit(.claude/**)",
+      "Write(.claude/**)",
+      "Skill(*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/session-start.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/session-stop.sh",
+            "async": true,
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/stop-git-durability-gate.py",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/source-edit-check.sh",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/source-edit-check.sh",
+            "timeout": 3000
+          },
+          {
+            "type": "command",
+            "command": "bash /home/tjm/Cloud/Dropbox/TJM-ALL/TJMSolns/.claude/snitches/secrets-snitch.sh",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /home/tjm/Cloud/Dropbox/TJM-ALL/TJMSolns/.claude/snitches/secrets-snitch.sh",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/pretooluse-done-gate.py",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|RemoteTrigger",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PROJECT_DIR}/.claude/hooks/pretooluse-crontab-remotetrigger-gate.py",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}

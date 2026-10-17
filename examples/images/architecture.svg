@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 220" width="400" height="220">
+  <rect width="400" height="220" fill="#f8f9fa"/>
+
+  <!-- cli box -->
+  <rect x="100" y="10" width="200" height="44" rx="6" fill="#569cd6" opacity="0.9"/>
+  <text x="200" y="28" text-anchor="middle" font-family="monospace" font-size="12" fill="white" font-weight="bold">cli</text>
+  <text x="200" y="46" text-anchor="middle" font-family="monospace" font-size="10" fill="white">IOApp · Decline · wiring</text>
+
+  <!-- arrow -->
+  <line x1="200" y1="54" x2="200" y2="78" stroke="#555" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- infrastructure box -->
+  <rect x="60" y="80" width="280" height="60" rx="6" fill="#ce9178" opacity="0.9"/>
+  <text x="200" y="100" text-anchor="middle" font-family="monospace" font-size="12" fill="white" font-weight="bold">infrastructure</text>
+  <text x="200" y="118" text-anchor="middle" font-family="monospace" font-size="10" fill="white">parser · renderer · theme · assets</text>
+  <text x="200" y="132" text-anchor="middle" font-family="monospace" font-size="9" fill="white">Flexmark · Scalatags · Circe · os-lib</text>
+
+  <!-- arrow -->
+  <line x1="200" y1="142" x2="200" y2="162" stroke="#555" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- domain box -->
+  <rect x="80" y="165" width="240" height="44" rx="6" fill="#4ec9b0" opacity="0.9"/>
+  <text x="200" y="183" text-anchor="middle" font-family="monospace" font-size="12" fill="white" font-weight="bold">domain</text>
+  <text x="200" y="201" text-anchor="middle" font-family="monospace" font-size="10" fill="white">pure functions · no I/O · Cats Core</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#555"/>
+    </marker>
+  </defs>
+</svg>
