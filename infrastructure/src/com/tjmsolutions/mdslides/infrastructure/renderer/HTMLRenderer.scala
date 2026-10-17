@@ -87,7 +87,9 @@ object HTMLRenderer:
       head(
         meta(charset := "UTF-8"),
         meta(name := "viewport", content := "width=device-width, initial-scale=1.0, viewport-fit=cover"),
-        tag("title")("MDSlides Presentation"),
+        tag("title")(deck.title.getOrElse("MD-Slides presentation")),
+        meta(name := "mdslides-title", content := deck.title.getOrElse("")),
+        meta(name := "mdslides-theme", content := theme.name),
         tag("style")(raw(generateCSS(theme))),
         // Syntax highlighting (v1.3)
         link(rel := "stylesheet", href := hljsCssUrl),
@@ -107,10 +109,13 @@ object HTMLRenderer:
         },
         div(cls := "controls")(
           button(`type` := "button", id := "nav-prev", cls := "nav-btn", attr("aria-label") := "Previous slide")("\u2039"),
-          span(cls := "slide-counter", id := "slide-counter")("1 / " + deck.slideCount),
+          button(`type` := "button", cls := "slide-counter", id := "slide-counter", attr("aria-haspopup") := "dialog",
+            attr("aria-label") := s"Slide 1 of ${deck.slideCount}, go to slide")("1 / " + deck.slideCount),
           button(`type` := "button", id := "nav-next", cls := "nav-btn", attr("aria-label") := "Next slide")("\u203A"),
           button(`type` := "button", id := "nav-fullscreen", cls := "nav-btn", attr("aria-label") := "Toggle fullscreen", attr("hidden") := "")("\u26F6")
         ),
+        // Speaker view synchronisation (shared with speaker.html)
+        tag("script")(src := "sync.js"),
         tag("script")(raw(navigationJS(deck.slideCount))),
         // Initialize syntax highlighting (v1.3)
         tag("script")(raw("document.addEventListener('DOMContentLoaded', () => { hljs.highlightAll(); });")),
@@ -575,6 +580,22 @@ object HTMLRenderer:
 
     .nav-btn[hidden] {
       display: none;
+    }
+
+    /* Slide counter doubles as the goto button (touch screens have no G key) */
+    .slide-counter {
+      min-height: 44px;
+      padding: 0 4px;
+      border: none;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .slide-counter:focus-visible {
+      outline: 2px solid currentColor;
     }
 
     .nav-btn:disabled {
@@ -1382,8 +1403,11 @@ object HTMLRenderer:
     let currentSlide = 0;
     const totalSlides = $totalSlides;
 
-    function showSlide(index) {
+    // method: how the change happened (keyboard, swipe, tap, button, link, goto, history, speaker-view).
+    // Every change is announced as 'mdslides:slidechange' (session log) and sent to speaker view.
+    function showSlide(index, method) {
       index = Math.max(0, Math.min(totalSlides - 1, index));
+      const from = currentSlide;
       const slides = document.querySelectorAll('.slide');
       slides.forEach((slide, i) => {
         slide.classList.toggle('active', i === index);
@@ -1393,6 +1417,7 @@ object HTMLRenderer:
 
       const counter = document.getElementById('slide-counter');
       counter.textContent = (index + 1) + ' / ' + totalSlides;
+      counter.setAttribute('aria-label', 'Slide ' + (index + 1) + ' of ' + totalSlides + ', go to slide');
 
       const prevBtn = document.getElementById('nav-prev');
       const nextBtn = document.getElementById('nav-next');
@@ -1402,12 +1427,21 @@ object HTMLRenderer:
       try { history.replaceState(null, '', '#' + (index + 1)); } catch (err) { /* ignore */ }
 
       requestAnimationFrame(fitActiveSlide);
+
+      if (from !== index) {
+        const how = method || 'other';
+        document.dispatchEvent(new CustomEvent('mdslides:slidechange', { detail: { from: from, to: index, method: how } }));
+        if (how !== 'speaker-view' && window.MDSlidesSync) window.MDSlidesSync.sendSlideChange(index);
+      }
     }
 
-    function nextSlide() { showSlide(currentSlide + 1); }
-    function prevSlide() { showSlide(currentSlide - 1); }
-    function firstSlide() { showSlide(0); }
-    function lastSlide() { showSlide(totalSlides - 1); }
+    function nextSlide(method) { showSlide(currentSlide + 1, method || 'keyboard'); }
+    function prevSlide(method) { showSlide(currentSlide - 1, method || 'keyboard'); }
+    function firstSlide() { showSlide(0, 'keyboard'); }
+    function lastSlide() { showSlide(totalSlides - 1, 'keyboard'); }
+
+    // Follow navigation made in speaker view
+    if (window.MDSlidesSync) window.MDSlidesSync.receiveSlideChange((i) => showSlide(i, 'speaker-view'));
 
     // Auto-scale code blocks that exceed 20 lines (PDR-006)
     function scaleCodeBlocks() {
@@ -1654,6 +1688,12 @@ object HTMLRenderer:
           e.preventDefault();
           toggleFullscreen();
           break;
+        case 'l':
+        case 'L':
+          // Save the session log (read by: java -jar md-slides.jar report DECK_NAME)
+          e.preventDefault();
+          if (window.MDSlidesHistoryLogger) window.MDSlidesHistoryLogger.downloadLog();
+          break;
       }
     });
 
@@ -1700,7 +1740,7 @@ object HTMLRenderer:
       if (isPinchZoomed() || isGotoModalOpen()) return;
       if (canScrollHorizontally(start.target, dx)) return;
       suppressTapUntil = Date.now() + 400;
-      if (dx < 0) nextSlide(); else prevSlide();
+      if (dx < 0) nextSlide('swipe'); else prevSlide('swipe');
     }, { passive: true });
 
     document.addEventListener('click', (e) => {
@@ -1712,7 +1752,7 @@ object HTMLRenderer:
       if (sel && String(sel).length > 0) return;
       if (Date.now() < suppressTapUntil) return;
       if (isGotoModalOpen() || isPinchZoomed()) return;
-      if (e.clientX < window.innerWidth * 0.3) prevSlide(); else nextSlide();
+      if (e.clientX < window.innerWidth * 0.3) prevSlide('tap'); else nextSlide('tap');
     });
 
     // On-screen buttons
@@ -1720,8 +1760,8 @@ object HTMLRenderer:
       const prevBtn = document.getElementById('nav-prev');
       const nextBtn = document.getElementById('nav-next');
       const fsBtn = document.getElementById('nav-fullscreen');
-      if (prevBtn) prevBtn.addEventListener('click', prevSlide);
-      if (nextBtn) nextBtn.addEventListener('click', nextSlide);
+      if (prevBtn) prevBtn.addEventListener('click', () => prevSlide('button'));
+      if (nextBtn) nextBtn.addEventListener('click', () => nextSlide('button'));
       if (fsBtn) {
         if (document.fullscreenEnabled || document.webkitFullscreenEnabled) fsBtn.hidden = false;
         fsBtn.addEventListener('click', toggleFullscreen);
@@ -1735,7 +1775,7 @@ object HTMLRenderer:
       const m = /^#([0-9]+)$$/.exec(location.hash);
       if (!m) return;
       const n = parseInt(m[1], 10) - 1;
-      if (n >= 0 && n < totalSlides && n !== currentSlide) showSlide(n);
+      if (n >= 0 && n < totalSlides && n !== currentSlide) showSlide(n, 'link');
     }
     window.addEventListener('hashchange', applyHash);
 

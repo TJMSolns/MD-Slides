@@ -39,9 +39,27 @@ case class SlideDeck(
    */
   def toList: List[Slide] = slides.toList
 
+  /**
+   * The deck title, as plain text: the title of the first `title` slide, otherwise the
+   * first slide title or heading. Used for the page title, `{{title}}` and session logs.
+   */
+  def title: Option[String] =
+    val fromTitleSlide = toList.find(_.templateName == "title").flatMap(_.slots.get(SlotName.Title))
+    val fromAnySlide   = toList.flatMap(s => s.slots.get(SlotName.Title).orElse(s.slots.get(SlotName.Heading))).headOption
+    fromTitleSlide.orElse(fromAnySlide).map(SlideDeck.plainText).filter(_.nonEmpty)
+
 end SlideDeck
 
 object SlideDeck:
+  /** Strip inline markdown (links, emphasis, code, heading marks) and collapse whitespace. */
+  def plainText(markdown: String): String =
+    markdown
+      .replaceAll("""!?\[([^\]]*)\]\([^)]*\)""", "$1")
+      .replaceAll("""[*_`]""", "")
+      .replaceAll("""^\s*#+\s*""", "")
+      .replaceAll("""\s+""", " ")
+      .trim
+
   /**
    * Create a validated SlideDeck.
    *

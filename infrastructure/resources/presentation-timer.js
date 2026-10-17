@@ -239,11 +239,13 @@ class TimerManager {
         this.timer = this.timer.pause();
         this.stopInterval();
         this.footerElement.classList.add('timer-paused');
+        document.dispatchEvent(new CustomEvent('mdslides:timer:pause', { detail: { elapsedMillis: this.timer.elapsedSeconds() * 1000 } }));
         console.log('[PresentationTimer] Paused');
       } else if (this.timer.state === TimerState.PAUSED) {
         this.timer = this.timer.resume();
         this.startInterval();
         this.footerElement.classList.remove('timer-paused');
+        document.dispatchEvent(new CustomEvent('mdslides:timer:resume'));
         console.log('[PresentationTimer] Resumed');
       }
 

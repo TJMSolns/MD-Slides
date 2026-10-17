@@ -1,326 +1,159 @@
 /**
- * History Logging - JavaScript Infrastructure Layer
+ * History Logging - session analytics recorded in the browser.
  *
- * Captures presentation session analytics for post-presentation analysis.
+ * Records the session while you present: slide changes (with how they happened),
+ * timer pause/resume and break mode. Press L to save the log as
+ * `<deck>-YYYYMMDD-HHMMSS.log.json`; `java -jar md-slides.jar report <deck>` reads it.
  *
- * Features:
- * - Session start/end events
- * - Slide change events with timestamps
- * - Navigation method tracking (arrow key, goto, history navigation)
- * - Timer events (pause/resume)
- * - Break mode events
- * - Export to JSON format
+ * Event JSON matches the domain's HistoryLog.eventToJson (SessionStarted, SlideChanged,
+ * TimerPaused, TimerResumed, BreakModeActivated, BreakModeDeactivated, SessionEnded).
  *
- * Architecture:
- * - Listens to presentation events
- * - Stores events in memory during session
- * - Exports via console or download on session end
- *
- * Related Artifacts:
- * - Design Spec: doc/internal/planning/v3.0.0-DESIGN-SPECIFICATIONS.md
- * - Domain Model: domain/src/com/tjmsolutions/mdslides/domain/HistoryLog.scala
- *
- * @version 3.0.0
- * @author TJM Solutions
+ * Inputs (all from the page):
+ * - 'mdslides:slidechange' {from, to, method}   dispatched by showSlide()
+ * - 'mdslides:timer:pause' {elapsedMillis}, 'mdslides:timer:resume'
+ * - 'mdslides:breakmode:activate', 'mdslides:breakmode:deactivate'
  */
 
-// ============================================================================
-// History Logger
-// ============================================================================
-
 class HistoryLogger {
-  constructor() {
-    this.events = [];
-    this.sessionStartTime = null;
-    this.currentSlideIndex = 0;
-    this.slideEntryTime = null;
-    this.presentationName = '';
-    this.themeName = '';
-    this.totalSlides = 0;
-  }
-
-  /**
-   * Initialize history logging when presentation loads
-   * @param {object} config Configuration with presentationName, themeName, totalSlides
-   */
-  initialize(config) {
-    this.presentationName = config.presentationName || 'untitled';
-    this.themeName = config.themeName || 'unknown';
-    this.totalSlides = config.totalSlides || 0;
-
-    // Record session start
-    this.recordSessionStart();
-
-    // Set up event listeners
-    this.setupEventListeners();
-
-    // Log to console on window unload
-    window.addEventListener('beforeunload', () => {
-      this.recordSessionEnd();
-      this.exportToConsole();
-    });
-
-    console.log('[HistoryLogger] Initialized for presentation:', this.presentationName);
-  }
-
-  /**
-   * Record session start event
-   */
-  recordSessionStart() {
-    this.sessionStartTime = Date.now();
-    this.slideEntryTime = this.sessionStartTime;
-
-    this.events.push({
+  constructor({ deck, title, theme, totalSlides, slideTitles, startSlide, now }) {
+    this.deck = deck;
+    this.title = title;
+    this.theme = theme;
+    this.totalSlides = totalSlides;
+    this.slideTitles = slideTitles;
+    this.startedAt = now;
+    this.breakStartedAt = null;
+    this.events = [{
       eventType: 'SessionStarted',
-      timestamp: this.sessionStartTime,
-      presentationName: this.presentationName,
-      themeName: this.themeName,
-      totalSlides: this.totalSlides
-    });
-
-    console.log('[HistoryLogger] Session started');
-  }
-
-  /**
-   * Record session end event
-   */
-  recordSessionEnd() {
-    const endTime = Date.now();
-    const duration = endTime - this.sessionStartTime;
-
-    this.events.push({
-      eventType: 'SessionEnded',
-      timestamp: endTime,
-      durationMs: duration,
-      durationFormatted: this.formatDuration(duration)
-    });
-
-    console.log('[HistoryLogger] Session ended, duration:', this.formatDuration(duration));
-  }
-
-  /**
-   * Record slide change event
-   * @param {number} fromSlide Previous slide index
-   * @param {number} toSlide New slide index
-   * @param {string} navigationMethod How the navigation occurred
-   */
-  recordSlideChange(fromSlide, toSlide, navigationMethod) {
-    const now = Date.now();
-    const timeOnSlide = now - this.slideEntryTime;
-
-    this.events.push({
-      eventType: 'SlideChanged',
       timestamp: now,
-      fromSlide,
-      toSlide,
-      timeOnPreviousSlide: timeOnSlide,
-      navigationMethod
-    });
-
-    // Update current state
-    this.currentSlideIndex = toSlide;
-    this.slideEntryTime = now;
-
-    console.log(`[HistoryLogger] Slide ${fromSlide} → ${toSlide} via ${navigationMethod}, time on slide: ${timeOnSlide}ms`);
+      totalSlides,
+      metadata: { deck, title, startSlide: String(startSlide) }
+    }];
   }
 
-  /**
-   * Record timer event (pause/resume)
-   * @param {string} action 'pause' or 'resume'
-   */
-  recordTimerEvent(action) {
-    this.events.push({
-      eventType: 'TimerEvent',
-      timestamp: Date.now(),
-      action
-    });
-
-    console.log(`[HistoryLogger] Timer ${action}`);
+  record(event) {
+    this.events.push(event);
   }
 
-  /**
-   * Record break mode event
-   * @param {string} action 'activate' or 'deactivate'
-   */
-  recordBreakModeEvent(action) {
-    this.events.push({
-      eventType: 'BreakModeEvent',
-      timestamp: Date.now(),
-      action
-    });
-
-    console.log(`[HistoryLogger] Break mode ${action}`);
+  slideChanged(from, to, method, now) {
+    this.record({ eventType: 'SlideChanged', timestamp: now, fromSlide: from, toSlide: to, navigationMethod: method });
   }
 
-  /**
-   * Record goto event
-   * @param {number} targetSlide The slide navigated to
-   */
-  recordGotoEvent(targetSlide) {
-    this.events.push({
-      eventType: 'GotoEvent',
-      timestamp: Date.now(),
-      fromSlide: this.currentSlideIndex,
-      toSlide: targetSlide
-    });
-
-    console.log(`[HistoryLogger] Goto: slide ${targetSlide}`);
+  timerPaused(elapsedMillis, now) {
+    this.record({ eventType: 'TimerPaused', timestamp: now, elapsedMillis: Math.round(elapsedMillis || 0) });
   }
 
-  /**
-   * Set up event listeners for all logged events
-   */
-  setupEventListeners() {
-    // Listen to Reveal.js slide changes
-    if (typeof Reveal !== 'undefined') {
-      Reveal.on('slidechanged', (event) => {
-        const toSlide = event.indexh;
-        const fromSlide = event.previousSlide ?
-          parseInt(event.previousSlide.getAttribute('data-index-h') || '0') :
-          this.currentSlideIndex;
-
-        // Determine navigation method based on keys pressed
-        const navigationMethod = this.guessNavigationMethod(fromSlide, toSlide);
-
-        this.recordSlideChange(fromSlide, toSlide, navigationMethod);
-      });
-    }
-
-    // Listen for custom events from other modules
-    document.addEventListener('mdslides:timer:pause', () => {
-      this.recordTimerEvent('pause');
-    });
-
-    document.addEventListener('mdslides:timer:resume', () => {
-      this.recordTimerEvent('resume');
-    });
-
-    document.addEventListener('mdslides:breakmode:activate', () => {
-      this.recordBreakModeEvent('activate');
-    });
-
-    document.addEventListener('mdslides:breakmode:deactivate', () => {
-      this.recordBreakModeEvent('deactivate');
-    });
-
-    document.addEventListener('mdslides:goto', (event) => {
-      this.recordGotoEvent(event.detail.targetSlide);
-    });
-
-    console.log('[HistoryLogger] Event listeners registered');
+  timerResumed(now) {
+    this.record({ eventType: 'TimerResumed', timestamp: now });
   }
 
-  /**
-   * Guess navigation method based on slide transition
-   * @param {number} fromSlide Previous slide
-   * @param {number} toSlide New slide
-   * @returns {string} Navigation method
-   */
-  guessNavigationMethod(fromSlide, toSlide) {
-    const diff = toSlide - fromSlide;
-
-    if (diff === 1) return 'arrow-forward';
-    if (diff === -1) return 'arrow-backward';
-    if (Math.abs(diff) > 1) return 'goto-or-history';
-
-    return 'unknown';
+  breakStarted(now) {
+    if (this.breakStartedAt !== null) return;
+    this.breakStartedAt = now;
+    this.record({ eventType: 'BreakModeActivated', timestamp: now });
   }
 
-  /**
-   * Format duration in milliseconds to HH:MM:SS
-   * @param {number} ms Duration in milliseconds
-   * @returns {string} Formatted duration
-   */
-  formatDuration(ms) {
-    const seconds = Math.floor(ms / 1000);
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    const pad = (num) => String(num).padStart(2, '0');
-    return `${pad(hours)}:${pad(minutes)}:${pad(secs)}`;
+  breakEnded(now) {
+    if (this.breakStartedAt === null) return;
+    this.record({ eventType: 'BreakModeDeactivated', timestamp: now, breakDurationMillis: now - this.breakStartedAt });
+    this.breakStartedAt = null;
   }
 
-  /**
-   * Export events to console (for debugging)
-   */
-  exportToConsole() {
-    console.log('[HistoryLogger] Session log:');
-    console.log(JSON.stringify(this.getSessionReport(), null, 2));
-  }
-
-  /**
-   * Get session report as structured object
-   * @returns {object} Session report
-   */
-  getSessionReport() {
+  /** The log as saved: everything so far plus a SessionEnded marker for this moment. */
+  snapshot(now) {
     return {
-      metadata: {
-        presentationName: this.presentationName,
-        themeName: this.themeName,
-        totalSlides: this.totalSlides,
-        startTime: new Date(this.sessionStartTime).toISOString(),
-        eventCount: this.events.length
-      },
-      events: this.events
+      format: 'mdslides-session-log',
+      version: 1,
+      deck: this.deck,
+      title: this.title,
+      theme: this.theme,
+      totalSlides: this.totalSlides,
+      slideTitles: this.slideTitles,
+      events: this.events.concat([{ eventType: 'SessionEnded', timestamp: now, totalElapsedMillis: now - this.startedAt }])
     };
   }
 
-  /**
-   * Download session log as JSON file
-   */
-  downloadLog() {
-    const report = this.getSessionReport();
-    const json = JSON.stringify(report, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
+  fileName(now) {
+    const d = new Date(now);
+    const pad = (n) => String(n).padStart(2, '0');
+    const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+    return `${this.deck}-${stamp}.log.json`;
+  }
 
+  /** Save the log as a download, and say so on screen. */
+  downloadLog() {
+    const now = Date.now();
+    const name = this.fileName(now);
+    const blob = new Blob([JSON.stringify(this.snapshot(now), null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${this.presentationName}-${Date.now()}.log.json`;
+    a.download = name;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-
-    URL.revokeObjectURL(url);
-
-    console.log('[HistoryLogger] Log downloaded');
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    announce(`Session log saved: ${name}`);
   }
 }
 
-// ============================================================================
-// Auto-initialize when DOM ready
-// ============================================================================
+/** Deck name: the output folder name (…/my-talk/index.html → my-talk). */
+function deckNameFromLocation(loc) {
+  const parts = loc.pathname.split('/').filter(Boolean);
+  if (parts.length && /\.html?$/i.test(parts[parts.length - 1])) parts.pop();
+  const name = parts.length ? decodeURIComponent(parts[parts.length - 1]) : 'presentation';
+  return name.replace(/[^A-Za-z0-9._-]+/g, '-') || 'presentation';
+}
 
-let historyLogger = null;
+/** Brief on-screen confirmation, also read by screen readers. */
+function announce(message) {
+  let el = document.getElementById('mdslides-status');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'mdslides-status';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    el.style.cssText = 'position:fixed;left:50%;bottom:4.5rem;transform:translateX(-50%);z-index:1000;' +
+      'background:#1f1f20;color:#fff;padding:0.6rem 1rem;border-radius:6px;font:14px/1.4 system-ui,sans-serif;' +
+      'max-width:90vw;box-shadow:0 2px 8px rgba(0,0,0,0.3);';
+    document.body.appendChild(el);
+  }
+  el.textContent = message;
+  el.hidden = false;
+  clearTimeout(announce.timer);
+  announce.timer = setTimeout(() => { el.hidden = true; }, 4000);
+}
 
 if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', () => {
-    // Wait for Reveal.js to initialize
-    if (typeof Reveal !== 'undefined') {
-      Reveal.on('ready', (event) => {
-        const totalSlides = Reveal.getTotalSlides();
+    const meta = (name) => (document.querySelector(`meta[name="${name}"]`) || {}).content || '';
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const hash = /^#([0-9]+)$/.exec(location.hash);
+    const startSlide = hash ? Math.min(Math.max(parseInt(hash[1], 10) - 1, 0), Math.max(slides.length - 1, 0)) : 0;
 
-        // Extract presentation name from document title or URL
-        const presentationName = document.title.replace('MDSlides Presentation', '').trim() ||
-          window.location.pathname.split('/').filter(Boolean).pop() ||
-          'untitled';
+    const logger = new HistoryLogger({
+      deck: deckNameFromLocation(location),
+      title: meta('mdslides-title'),
+      theme: meta('mdslides-theme'),
+      totalSlides: slides.length,
+      slideTitles: slides.map((s) => {
+        const h = s.querySelector('h1, h2, h3');
+        return h ? h.textContent.trim() : '';
+      }),
+      startSlide,
+      now: Date.now()
+    });
 
-        historyLogger = new HistoryLogger();
-        historyLogger.initialize({
-          presentationName,
-          themeName: 'unknown',  // Could be injected from server
-          totalSlides
-        });
+    document.addEventListener('mdslides:slidechange', (e) => logger.slideChanged(e.detail.from, e.detail.to, e.detail.method, Date.now()));
+    document.addEventListener('mdslides:timer:pause', (e) => logger.timerPaused(e.detail && e.detail.elapsedMillis, Date.now()));
+    document.addEventListener('mdslides:timer:resume', () => logger.timerResumed(Date.now()));
+    document.addEventListener('mdslides:breakmode:activate', () => logger.breakStarted(Date.now()));
+    document.addEventListener('mdslides:breakmode:deactivate', () => logger.breakEnded(Date.now()));
 
-        // Expose logger for manual download
-        window.MDSlidesHistoryLogger = historyLogger;
-      });
-    }
+    window.MDSlidesHistoryLogger = logger;
   });
 }
 
-// Export for testing
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { HistoryLogger };
+  module.exports = { HistoryLogger, deckNameFromLocation };
 }

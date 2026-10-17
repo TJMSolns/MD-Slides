@@ -111,10 +111,27 @@ class HeaderFooterUpdater {
     // AC-3, AC-4: Timer placeholder (dynamic, updated every second)
     result = result.replace(/\{\{timer\}\}/g, elapsedTime);
 
-    // AC-7: Title placeholder (static, resolved server-side but may update if needed)
-    // {{title}} is already resolved server-side in HeaderFooter.resolvePlaceholders()
+    // AC-7: Title placeholder (deck title, from the page's mdslides-title meta tag)
+    result = result.replace(/\{\{title\}\}/g, () => this.deckTitle());
+
+    // Date placeholder (today, local time, YYYY-MM-DD)
+    result = result.replace(/\{\{date\}\}/g, () => this.today());
 
     return result;
+  }
+
+  /** Deck title, HTML-escaped (header/footer content is set as HTML). */
+  deckTitle() {
+    const meta = document.querySelector('meta[name="mdslides-title"]');
+    const text = (meta && meta.content) || '';
+    return text.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  /** Today's date as YYYY-MM-DD (local time). */
+  today() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   }
 
   /**

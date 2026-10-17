@@ -52,9 +52,14 @@ class BreakModeManager {
 
     // Set up keyboard listener for B key
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'b' || event.key === 'B') {
-        this.toggle();
-      }
+      if (event.key !== 'b' && event.key !== 'B') return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const t = event.target;
+      if (t && t.closest && t.closest('input, textarea, select, [contenteditable]')) return;
+      const goto = document.querySelector('.goto-modal');
+      if (goto && getComputedStyle(goto).display !== 'none') return;
+      event.preventDefault();
+      this.toggle();
     });
 
     // Set up cross-window sync
@@ -100,10 +105,11 @@ class BreakModeManager {
     this.isActive = true;
     this.breakCount++; // AC-5: Increment break count for each session
 
-    // Pause timer (reassign because timer is immutable)
-    if (typeof timerManager !== 'undefined' && timerManager) {
-      console.log('[BreakMode] Pausing timer');
+    // Pause the timer only if it is running (it may not have started yet, or be paused already)
+    this.pausedTimer = false;
+    if (typeof timerManager !== 'undefined' && timerManager && timerManager.timer.state === 'Running') {
       timerManager.timer = timerManager.timer.pause();
+      this.pausedTimer = true;
     }
 
     // Show break screen (main view only)
@@ -145,11 +151,11 @@ class BreakModeManager {
 
     this.isActive = false;
 
-    // Resume timer (reassign because timer is immutable)
-    if (typeof timerManager !== 'undefined' && timerManager) {
-      console.log('[BreakMode] Resuming timer');
+    // Resume the timer only if break mode paused it
+    if (this.pausedTimer && typeof timerManager !== 'undefined' && timerManager && timerManager.timer.state === 'Paused') {
       timerManager.timer = timerManager.timer.resume();
     }
+    this.pausedTimer = false;
 
     // Hide break screen (main view only)
     if (!this.isSpeakerView) {

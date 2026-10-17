@@ -175,7 +175,7 @@ class NavigationHistoryManager {
     this.isNavigatingProgrammatically = true;
 
     if (typeof showSlide === 'function') {
-      showSlide(slideIndex);
+      showSlide(slideIndex, 'history');
 
       // Update global currentSlide variable
       if (typeof currentSlide !== 'undefined') {
@@ -199,6 +199,10 @@ class NavigationHistoryManager {
    */
   setupKeyboardHandlers() {
     document.addEventListener('keydown', (event) => {
+      // Leave browser shortcuts (Ctrl/Cmd+P print, Ctrl+N new window) and typing alone
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      if (event.target && event.target.closest && event.target.closest('input, textarea, select, [contenteditable]')) return;
+
       // P key - Navigate to previous slide in history
       if (event.key === 'p' || event.key === 'P') {
         // AC-10: Check if break mode or goto popup is active

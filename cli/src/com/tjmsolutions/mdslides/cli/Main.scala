@@ -545,76 +545,31 @@ object Main extends IOApp:
       _ <- IO.println("  4. Defaults (theme=light, copyImages=true)")
       _ <- IO.println("")
       _ <- IO.println("Documentation:")
-      _ <- IO.println("  Project config fields: theme, copyImages, skipAccessibility, outputDir")
+      _ <- IO.println("  Project config fields: theme, copyImages, skipAccessibility, accessibilityReportPath, outputDir, header, footer, breakScreen")
       _ <- IO.println("  Global config fields: defaults, author, paths")
-      _ <- IO.println("  See examples/README.md for full documentation")
+      _ <- IO.println("  Docs: https://www.tjm.solutions/mdslides/docs/configuration")
       _ <- IO.println("═" * 70)
     } yield ExitCode.Success
 
   /**
-   * Initialize log file with session metadata (AC-3: History Logging).
+   * Display command: open the rendered presentation in the default browser.
    *
-   * Creates a JSON log file with:
-   * - sessionId (UUID)
-   * - presentationName
-   * - startTime (ISO 8601)
-   * - theme (placeholder, will be filled by JS)
-   * - totalSlides (placeholder, will be filled by JS)
-   * - slides (empty array, will be filled by JS)
-   * - events (empty array, will be filled by JS)
-   *
-   * AC-4 (Display Command): Log file overwrites previous session.
-   */
-  def initializeLogFile(logFile: Path, deckName: String): IO[Unit] =
-    IO {
-      import java.util.UUID
-      import java.time.Instant
-      import java.time.format.DateTimeFormatter
-
-      val sessionId = UUID.randomUUID().toString
-      val startTime = Instant.now().atZone(java.time.ZoneId.of("UTC")).format(DateTimeFormatter.ISO_INSTANT)
-
-      val logJson = s"""{
-  "session": {
-    "sessionId": "$sessionId",
-    "presentationName": "$deckName",
-    "startTime": "$startTime",
-    "theme": "unknown",
-    "totalSlides": 0,
-    "endTime": null
-  },
-  "slides": [],
-  "events": []
-}"""
-
-      // AC-4: Overwrite previous log (truncate)
-      Files.writeString(logFile, logJson, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
-      println(s"  Log file initialized: ${logFile.getFileName}")
-    }.handleErrorWith { error =>
-      // AC-5 (Display Command): Log creation failure is non-fatal
-      IO.println(s"  ⚠ Warning: Could not create log file: ${error.getMessage}")
-    }
-
-  /**
-   * Display command: Open presentation in browser (v3.0.0).
+   * Session analytics are recorded in the page itself; pressing L saves them as
+   * `<deck>-YYYYMMDD-HHMMSS.log.json` (the browser's download folder), which `report` reads.
    */
   def displayCommand(deckName: String): IO[ExitCode] =
     val outputDir = PathResolver.determineOutputDir(deckName)
     val indexPath = outputDir.resolve("index.html")
-    val logFile = outputDir.resolve(s"${outputDir.getFileName}.log")
-
     for {
-      // Check if presentation exists
       exists <- IO.blocking(Files.exists(indexPath))
       exitCode <- if !exists then
-        IO.println(s"✗ Presentation not rendered. Run 'java -jar mdslides.jar render $deckName' first.").as(ExitCode.Error)
+        IO.println(s"✗ Presentation not rendered. Run 'java -jar md-slides.jar render $deckName' first.").as(ExitCode.Error)
       else
-        for {
-          // AC-3 (History Logging): Create log file with session metadata
-          _ <- initializeLogFile(logFile, deckName)
-          // Launch browser
-          exitCode <- launchBrowser(indexPath)
-        } yield exitCode
+        launchBrowser(indexPath).flatTap { code =>
+          IO.whenA(code == ExitCode.Success)(
+            IO.println(s"  When you finish, press L in the presentation to save the session log, then run: report $deckName")
+          )
+        }
     } yield exitCode
 
   /**
@@ -640,220 +595,48 @@ object Main extends IOApp:
       IO.println(s"✗ Failed to open browser: ${error.getMessage}").as(ExitCode.Error)
     }
 
-  /**
-   * Report command: Display session log (v3.0.0).
-   */
-  def reportCommand(deckName: String): IO[ExitCode] =
-    val outputDir = PathResolver.determineOutputDir(deckName)
-    val logFile = outputDir.resolve(s"${outputDir.getFileName}.log")
-
-    for {
-      // Check if log file exists
-      exists <- IO.blocking(Files.exists(logFile))
-      exitCode <- if !exists then
-        IO.println(s"✗ No log file found for presentation: $deckName").as(ExitCode.Error)
-      else
-        // Read and parse log file
-        parseAndDisplayLog(logFile)
-    } yield exitCode
-
-  /**
-   * Parse and display session log with Unicode table formatting (AC-5 through AC-11).
-   */
-  def parseAndDisplayLog(logFile: Path): IO[ExitCode] =
+  /** Folders searched for a saved session log: the deck's output folder, the current folder, ~/Downloads. */
+  private def sessionLogFolders(deckName: String): IO[List[Path]] =
     IO.blocking {
-      import io.circe.parser.parse
-      import io.circe.Json
+      List(
+        PathResolver.determineOutputDir(deckName).toAbsolutePath,
+        Paths.get(".").toAbsolutePath.normalize(),
+        Paths.get(System.getProperty("user.home"), "Downloads")
+      )
+    }
 
-      val content = Files.readString(logFile)
-
-      // Parse JSON
-      parse(content) match {
-        case Right(json) =>
-          // Extract session info
-          val session = json.hcursor.downField("session")
-          val presentationName = session.get[String]("presentationName").getOrElse("Unknown")
-          val startTime = session.get[String]("startTime").getOrElse("Unknown")
-          val theme = session.get[String]("theme").getOrElse("unknown")
-          val totalSlides = session.get[Int]("totalSlides").getOrElse(0)
-          val endTime = session.get[Option[String]]("endTime").toOption.flatten
-
-          // Extract slides array
-          val slides = json.hcursor.downField("slides").focus.flatMap(_.asArray).getOrElse(Vector.empty)
-
-          // Extract events array
-          val events = json.hcursor.downField("events").focus.flatMap(_.asArray).getOrElse(Vector.empty)
-
-          // Print header
-          println("═" * 70)
-          println(s"  Presentation Report: $presentationName")
-          println("═" * 70)
-          println()
-
-          // AC-4: Session Information section
-          println("Session Information:")
-          println(s"  Started:        ${formatTimestamp(startTime)}")
-          println(s"  Duration:       ${calculateDuration(startTime, endTime)}")
-          println(s"  Theme:          $theme")
-          println(s"  Total Slides:   $totalSlides")
-          val uniqueSlides = slides.map(_.hcursor.get[Int]("slideIndex").getOrElse(0)).toSet.size
-          println(s"  Slides Viewed:  $uniqueSlides/$totalSlides (${if totalSlides > 0 then (uniqueSlides * 100 / totalSlides) else 0}%)")
-          println()
-
-          // AC-5: Slide Timing Summary (Unicode box-drawing table)
-          if (slides.nonEmpty) {
-            println("Slide Timing Summary:")
-            println("  ┌─────┬──────────────────────────────────────┬──────────┐")
-            println("  │ No. │ Title                                │ Duration │")
-            println("  ├─────┼──────────────────────────────────────┼──────────┤")
-
-            slides.foreach { slideJson =>
-              val cursor = slideJson.hcursor
-              val slideIndex = cursor.get[Int]("slideIndex").getOrElse(0)
-              val slideNumber = slideIndex + 1
-              val duration = cursor.get[Long]("elapsedSeconds").getOrElse(0L)
-              val title = s"Slide $slideNumber" // Title extraction would require HTML parsing
-
-              println(f"  │ ${slideNumber}%3d │ ${title.take(36).padTo(36, ' ')} │ ${formatDuration(duration)}%8s │")
-            }
-
-            println("  └─────┴──────────────────────────────────────┴──────────┘")
-            println()
+  /**
+   * Report command: analyse a saved session log.
+   *
+   * @param logFile explicit log (`--log FILE`); otherwise the newest `<deck>-*.log.json` is used
+   */
+  def reportCommand(deckName: String, logFile: Option[Path] = None): IO[ExitCode] =
+    import com.tjmsolutions.mdslides.domain.SessionAnalysis
+    import com.tjmsolutions.mdslides.infrastructure.session.{SessionLogLocator, SessionLogParser, SessionReport}
+    for {
+      folders <- sessionLogFolders(deckName)
+      found   <- logFile match
+                   case Some(p) => IO.blocking(Option.when(Files.exists(p))(p))
+                   case None    => IO.blocking(SessionLogLocator.newest(deckName, folders))
+      exitCode <- found match
+        case None =>
+          val where = logFile.fold(folders.mkString(", "))(_.toString)
+          IO.println(
+            s"""✗ No saved session log for '$deckName' (looked in: $where).
+               |  While presenting, press L to save the session log (browsers put it in your Downloads folder),
+               |  then run 'report $deckName' again, or pass --log FILE.""".stripMargin
+          ).as(ExitCode.Error)
+        case Some(path) =>
+          IO.blocking(Files.readString(path)).attempt.flatMap {
+            case Left(e) => IO.println(s"✗ Could not read ${path}: ${e.getMessage}").as(ExitCode.Error)
+            case Right(content) =>
+              SessionLogParser.parse(content).flatMap(file => SessionAnalysis.analyze(file.log).map(file -> _)) match
+                case Left(reason) => IO.println(s"✗ ${path}: $reason").as(ExitCode.Error)
+                case Right((file, analysis)) =>
+                  IO.println(s"Session log: $path\n") *>
+                  IO.println(SessionReport.render(file, analysis, java.time.ZoneId.systemDefault())).as(ExitCode.Success)
           }
-
-          // AC-6: Top 5 Longest Slides
-          if (slides.nonEmpty) {
-            val sortedSlides = slides.sortBy(_.hcursor.get[Long]("elapsedSeconds").getOrElse(0L))(Ordering[Long].reverse)
-            val top5 = sortedSlides.take(5)
-
-            println(s"Top ${top5.size} Longest Slides:")
-            top5.zipWithIndex.foreach { case (slideJson, idx) =>
-              val cursor = slideJson.hcursor
-              val slideIndex = cursor.get[Int]("slideIndex").getOrElse(0)
-              val slideNumber = slideIndex + 1
-              val duration = cursor.get[Long]("elapsedSeconds").getOrElse(0L)
-              val title = s"Slide $slideNumber"
-
-              println(f"  ${idx + 1}. $title%-30s ${formatDurationShort(duration)}%6s")
-            }
-            println()
-          }
-
-          // AC-7: Events Log
-          if (events.nonEmpty) {
-            println("Events Log:")
-            events.foreach { eventJson =>
-              val cursor = eventJson.hcursor
-              val timestamp = cursor.get[String]("timestamp").getOrElse("")
-              val key = cursor.get[String]("key").getOrElse("?")
-              val action = cursor.get[String]("action").getOrElse("unknown")
-
-              println(s"  ${formatTime(timestamp)}  [$key] ${formatAction(action)}")
-            }
-            println()
-          } else {
-            println("Events Log:")
-            println("  No events recorded during this session.")
-            println()
-          }
-
-          // AC-8: Navigation Statistics
-          val forwardNav = slides.count(_.hcursor.get[String]("navigationMethod").getOrElse("") == "next")
-          val backwardNav = slides.count(_.hcursor.get[String]("navigationMethod").getOrElse("") == "previous")
-          val gotoNav = slides.count(_.hcursor.get[String]("navigationMethod").getOrElse("") == "goto")
-          val revisited = slides.size - uniqueSlides
-
-          println("Navigation Statistics:")
-          println(s"  Forward navigations:      $forwardNav")
-          println(s"  Backward navigations:     $backwardNav")
-          println(s"  Goto jumps:               $gotoNav")
-          println(s"  Slides revisited:         $revisited")
-          println()
-
-          println("═" * 70)
-
-          ExitCode.Success
-
-        case Left(error) =>
-          println(s"✗ Failed to parse log file: ${error.getMessage}")
-          ExitCode.Error
-      }
-    }.handleErrorWith { error =>
-      IO.println(s"✗ Failed to read log file: ${error.getMessage}").as(ExitCode.Error)
-    }
-
-  /**
-   * Format ISO timestamp to readable format
-   */
-  private def formatTimestamp(timestamp: String): String =
-    try {
-      import java.time.Instant
-      import java.time.format.DateTimeFormatter
-      import java.time.ZoneId
-      val instant = Instant.parse(timestamp)
-      val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault())
-      formatter.format(instant)
-    } catch {
-      case _: Exception => timestamp
-    }
-
-  /**
-   * Format time only (HH:mm:ss)
-   */
-  private def formatTime(timestamp: String): String =
-    try {
-      import java.time.Instant
-      import java.time.format.DateTimeFormatter
-      import java.time.ZoneId
-      val instant = Instant.parse(timestamp)
-      val formatter = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault())
-      formatter.format(instant)
-    } catch {
-      case _: Exception => timestamp
-    }
-
-  /**
-   * Calculate duration between start and end time
-   */
-  private def calculateDuration(startTime: String, endTime: Option[String]): String =
-    try {
-      import java.time.Instant
-      import java.time.Duration
-      val start = Instant.parse(startTime)
-      val end = endTime.map(Instant.parse).getOrElse(Instant.now())
-      val duration = Duration.between(start, end)
-
-      val hours = duration.toHours
-      val minutes = (duration.toMinutes % 60)
-      val seconds = (duration.getSeconds % 60)
-
-      f"$hours%02d:$minutes%02d:$seconds%02d${if (endTime.isEmpty) " (IN PROGRESS)" else ""}"
-    } catch {
-      case _: Exception => "Unknown"
-    }
-
-  /**
-   * Format duration in seconds to hh:mm:ss
-   */
-  private def formatDuration(seconds: Long): String =
-    val hours = seconds / 3600
-    val minutes = (seconds % 3600) / 60
-    val secs = seconds % 60
-    f"$hours%02d:$minutes%02d:$secs%02d"
-
-  /**
-   * Format duration in seconds to mm:ss (for top 5)
-   */
-  private def formatDurationShort(seconds: Long): String =
-    val minutes = seconds / 60
-    val secs = seconds % 60
-    f"$minutes%02d:$secs%02d"
-
-  /**
-   * Format action for display
-   */
-  private def formatAction(action: String): String =
-    action.replace("_", " ").split(" ").map(_.capitalize).mkString(" ")
+    } yield exitCode
 
   /**
    * Smart default command: Report → Render if needed → Display (v3.0.0).
@@ -862,17 +645,17 @@ object Main extends IOApp:
     for {
       currentDir <- IO.blocking(Paths.get(".").toAbsolutePath.normalize())
       outputDir = PathResolver.determineOutputDir(deckName)
-      logFile = outputDir.resolve(s"${outputDir.getFileName}.log")
 
-      // Step 1: Check for log file and show report if exists
-      hasLog <- IO.blocking(Files.exists(logFile))
-      _ <- if hasLog then
-        IO.println("Previous session log found:\n") *>
-        reportCommand(deckName) *>
-        IO.println("\nPress Enter to continue...") *>
-        IO.readLine
-      else
-        IO.unit
+      // Step 1: If a saved session log exists, show its report first
+      folders <- sessionLogFolders(deckName)
+      savedLog <- IO.blocking(com.tjmsolutions.mdslides.infrastructure.session.SessionLogLocator.newest(deckName, folders))
+      interactive <- IO.blocking(System.console() != null)
+      _ <- savedLog match
+        case Some(log) =>
+          IO.println("Previous session found:\n") *>
+          reportCommand(deckName, Some(log)) *>
+          IO.whenA(interactive)(IO.println("\nPress Enter to continue...") *> IO.blocking(Option(scala.io.StdIn.readLine())).void)
+        case None => IO.unit
 
       // Step 2: Check if render needed
       sourceFile <- IO.fromEither(
@@ -907,47 +690,56 @@ object Main extends IOApp:
   override def run(args: List[String]): IO[ExitCode] =
     // Check for global help/version flags first (before requiring command)
     if args.contains("--help") || args.contains("-h") then
-      IO.println("""MDSlides v0.2.0 - Professional presentation tool from Markdown
+      IO.println(s"""MD-Slides v${BuildInfo.version} - Markdown to self-contained HTML presentations
 
-Usage: mdslides <command> [options]
+Usage: java -jar md-slides.jar <command> [options]
 
 Commands:
-  render DECK_NAME [options]    Convert markdown to HTML presentation
-  display DECK_NAME             Open presentation in browser
-  report DECK_NAME              Show session analytics and timing
-  config                        Display configuration information
-  DECK_NAME                     Smart default (report → render → display)
+  render DECK_NAME [options]    Convert DECK_NAME.md to a presentation in DECK_NAME/
+  display DECK_NAME             Open the rendered presentation in your browser
+  report DECK_NAME [--log FILE] Analyse a saved session log (press L while presenting to save one)
+  config                        Show the active configuration and where each value came from
+  DECK_NAME                     Smart default: report (if a session log exists), render if
+                                the Markdown changed, then display
 
-Render Options:
-  -i, --input FILE              Input markdown file (explicit form)
+Render options:
+  -i, --input FILE              Input Markdown file (explicit form)
   -o, --output DIR              Output directory (explicit form)
-  --theme THEME                 Theme: light, dark, or custom (default: light)
+  --theme THEME                 Theme name: light (default), dark, corporate, or a folder
+                                in your themes directory (./themes or paths.themesDir)
   --no-copy-images              Don't copy image assets
   --skip-accessibility          Skip WCAG 2.1 AA validation
-  --accessibility-report FILE   Write accessibility report to JSON file
-  --break-screen IMAGE          Image path for break screen
+  --accessibility-report FILE   Write the accessibility report to a JSON file
+  --break-screen IMAGE          Image shown in break mode
+
+Other:
+  -h, --help                    Show this help
+  -v, --version                 Show the version
 
 Examples:
-  mdslides render my-presentation
-  mdslides render my-presentation --theme dark
-  mdslides render -i deck.md -o output/ --theme light
-  mdslides display my-presentation
-  mdslides report my-presentation
-  mdslides config
+  java -jar md-slides.jar render my-talk
+  java -jar md-slides.jar render my-talk --theme dark
+  java -jar md-slides.jar render -i deck.md -o output/ --theme light
+  java -jar md-slides.jar display my-talk
+  java -jar md-slides.jar report my-talk
 
-For more information, visit: https://github.com/tjm/mdslides""").as(ExitCode.Success)
+Docs: https://www.tjm.solutions/mdslides/docs/intro
+Source: https://github.com/TJMSolns/MD-Slides""").as(ExitCode.Success)
     else if args.contains("--version") || args.contains("-v") then
       IO.println(s"mdslides v${BuildInfo.version}").as(ExitCode.Success)
     else if args.isEmpty then
-      IO.println("Usage: mdslides <command> [options]\n\nCommands:\n  render DECK_NAME [options]    Convert markdown to HTML\n  display DECK_NAME            Open presentation in browser\n  report DECK_NAME             Show session analytics\n  config                       Show configuration\n  DECK_NAME                    Smart default (report → render → display)\n\nUse 'mdslides --help' for more information").as(ExitCode.Error)
+      IO.println("Usage: java -jar md-slides.jar <command> [options]\n\nCommands:\n  render DECK_NAME [options]    Convert Markdown to HTML\n  display DECK_NAME             Open the presentation in your browser\n  report DECK_NAME [--log FILE] Analyse a saved session log\n  config                        Show configuration\n  DECK_NAME                     Smart default (report, render if needed, display)\n\nRun with --help for options").as(ExitCode.Error)
     else if args(0) == "config" then
       showConfig()
     else if args(0) == "display" && args.length >= 2 then
       // Display command: java -jar mdslides.jar display DECK_NAME
       displayCommand(args(1))
     else if args(0) == "report" && args.length >= 2 then
-      // Report command: java -jar mdslides.jar report DECK_NAME
-      reportCommand(args(1))
+      // Report command: java -jar md-slides.jar report DECK_NAME [--log FILE]
+      val logFile = args.sliding(2).collectFirst { case List("--log", f) => Paths.get(f) }
+      if args.contains("--log") && logFile.isEmpty then
+        IO.println("✗ --log needs a file path").as(ExitCode.Error)
+      else reportCommand(args(1), logFile)
     else if args(0) == "render" then
       // Render command: java -jar mdslides.jar render DECK_NAME [options]
       CLIArguments.parse(args.toArray) match

@@ -58,7 +58,8 @@ class HTMLRendererMobileSpec extends munit.FunSuite:
     assert(html.contains("grid-template-columns: 1fr !important"))
 
   test("Slide counter keeps its N / total format"):
-    assert(html.contains("""id="slide-counter">1 / 3<"""))
+    assert(html.contains("""id="slide-counter""""))
+    assert(html.contains(""">1 / 3</button>"""))
 
   test("Obsolete scaleBodyContent (measured hidden slides) is gone"):
     assert(!html.contains("scaleBodyContent"))

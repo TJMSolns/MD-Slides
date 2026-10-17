@@ -74,160 +74,129 @@ class GotoFunction {
    * Create modal overlay for goto prompt with slide selector
    */
   createModal() {
-    // Create modal container
     this.modal = document.createElement('div');
     this.modal.className = 'goto-modal';
     this.modal.setAttribute('role', 'dialog');
     this.modal.setAttribute('aria-modal', 'true');
-    this.modal.setAttribute('aria-label', 'Go to slide');
-    this.modal.style.cssText = `
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      z-index: 10000;
-      justify-content: center;
-      align-items: center;
-    `;
+    this.modal.setAttribute('aria-labelledby', 'goto-heading');
+    this.modal.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10000;' +
+      'justify-content:center;align-items:center;padding:1rem;box-sizing:border-box;';
 
-    // Create modal content
-    const modalContent = document.createElement('div');
-    modalContent.className = 'goto-modal-content';
-    modalContent.style.cssText = `
-      background: #fff;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-      max-width: 600px;
-      max-height: 80vh;
-      overflow: auto;
-    `;
+    const content = document.createElement('div');
+    content.className = 'goto-modal-content';
+    content.style.cssText = 'background:#fff;color:#1f1f20;padding:1.5rem;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.5);' +
+      'width:min(600px,100%);max-height:85vh;display:flex;flex-direction:column;gap:0.75rem;font:16px/1.4 system-ui,sans-serif;';
 
-    // Create heading
     const heading = document.createElement('h2');
-    heading.textContent = 'Go to Slide';
-    heading.style.cssText = 'margin: 0 0 20px 0; color: #333;';
+    heading.id = 'goto-heading';
+    heading.textContent = 'Go to slide';
+    heading.style.cssText = 'margin:0;font-size:1.25rem;color:#1f1f20;';
 
-    // Create slide list container
-    const slideList = document.createElement('div');
-    slideList.className = 'goto-slide-list';
-    slideList.style.cssText = `
-      max-height: 400px;
-      overflow-y: auto;
-      margin-bottom: 15px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    `;
+    // Number entry: type a slide number and press Enter
+    const form = document.createElement('form');
+    form.style.cssText = 'display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;';
+    const label = document.createElement('label');
+    label.htmlFor = 'goto-number';
+    label.textContent = `Slide number (1–${this.totalSlides})`;
+    this.input = document.createElement('input');
+    this.input.id = 'goto-number';
+    this.input.type = 'number';
+    this.input.inputMode = 'numeric';
+    this.input.min = '1';
+    this.input.max = String(this.totalSlides);
+    this.input.style.cssText = 'width:6rem;font-size:1rem;padding:0.4rem;border:1px solid #666;border-radius:4px;';
+    const go = document.createElement('button');
+    go.type = 'submit';
+    go.textContent = 'Go';
+    go.style.cssText = 'padding:0.45rem 1.2rem;font-size:1rem;background:#1f1f20;color:#fff;border:0;border-radius:4px;cursor:pointer;';
+    this.error = document.createElement('span');
+    this.error.setAttribute('role', 'alert');
+    this.error.style.cssText = 'color:#a00000;font-size:0.9rem;';
+    form.append(label, this.input, go, this.error);
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const n = parseInt(this.input.value, 10);
+      if (Number.isInteger(n) && n >= 1 && n <= this.totalSlides) {
+        this.hideModal();
+        this.gotoSlide(n - 1);
+      } else {
+        this.error.textContent = `Enter a number from 1 to ${this.totalSlides}.`;
+      }
+    });
 
-    // Build slide list from DOM
-    this.buildSlideList(slideList);
+    // Or pick from the list (buttons: keyboard and touch accessible)
+    const list = document.createElement('div');
+    list.className = 'goto-slide-list';
+    list.setAttribute('role', 'list');
+    list.style.cssText = 'overflow-y:auto;border:1px solid #ccc;border-radius:4px;min-height:0;flex:1;';
+    this.buildSlideList(list);
 
-    // Create cancel button
-    const cancelButton = document.createElement('button');
-    cancelButton.textContent = 'Cancel';
-    cancelButton.style.cssText = `
-      padding: 10px 30px;
-      font-size: 16px;
-      background: #6c757d;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      display: block;
-      margin: 0 auto;
-    `;
-    cancelButton.onclick = () => this.hideModal();
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.textContent = 'Cancel';
+    cancel.style.cssText = 'align-self:center;padding:0.5rem 1.8rem;font-size:1rem;background:#595959;color:#fff;border:0;border-radius:4px;cursor:pointer;';
+    cancel.addEventListener('click', () => this.hideModal());
 
-    // Assemble modal
-    modalContent.appendChild(heading);
-    modalContent.appendChild(slideList);
-    modalContent.appendChild(cancelButton);
-
-    this.modal.appendChild(modalContent);
+    content.append(heading, form, list, cancel);
+    this.modal.appendChild(content);
     document.body.appendChild(this.modal);
 
-    // Handle Escape key
+    // Escape closes; clicking the backdrop closes
     this.modal.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        this.hideModal();
-      }
+      if (event.key === 'Escape') { event.preventDefault(); this.hideModal(); }
     });
+    this.modal.addEventListener('click', (event) => { if (event.target === this.modal) this.hideModal(); });
   }
 
-  /**
-   * Build list of clickable slides with numbers and titles
-   */
   buildSlideList(container) {
-    const slides = document.querySelectorAll('.slide');
-
-    slides.forEach((slide, index) => {
-      // Extract slide title from h1 or h2
-      const titleElement = slide.querySelector('h1, h2');
+    this.items = [];
+    document.querySelectorAll('.slide').forEach((slide, index) => {
+      const titleElement = slide.querySelector('h1, h2, h3');
       const titleText = titleElement ? titleElement.textContent.trim() : '(No title)';
-
-      // Create slide list item
-      const item = document.createElement('div');
+      const item = document.createElement('button');
+      item.type = 'button';
       item.className = 'goto-slide-item';
-      item.style.cssText = `
-        padding: 12px 15px;
-        border-bottom: 1px solid #eee;
-        cursor: pointer;
-        transition: background 0.2s;
-      `;
+      item.setAttribute('role', 'listitem');
       item.textContent = `${index + 1}. ${titleText}`;
-
-      // Hover effect
-      item.addEventListener('mouseenter', () => {
-        item.style.background = '#f0f0f0';
-      });
-      item.addEventListener('mouseleave', () => {
-        item.style.background = index === this.currentSlideIndex ? '#e3f2fd' : 'white';
-      });
-
-      // Highlight current slide
-      if (index === this.currentSlideIndex) {
-        item.style.background = '#e3f2fd';
-        item.style.fontWeight = 'bold';
-      }
-
-      // Click to navigate
+      item.style.cssText = 'display:block;width:100%;text-align:left;padding:0.7rem 0.9rem;border:0;border-bottom:1px solid #eee;' +
+        'background:#fff;color:#1f1f20;font:inherit;cursor:pointer;';
       item.addEventListener('click', () => {
-        this.gotoSlide(index);
         this.hideModal();
+        this.gotoSlide(index);
       });
-
       container.appendChild(item);
+      this.items.push(item);
     });
   }
 
-  /**
-   * Show the goto modal
-   */
   showModal() {
-    // Pause timer (AC-6: Timer pauses during goto popup)
+    // Pause timer while choosing (AC-6), resume on close
+    this.pausedTimer = false;
     if (typeof timerManager !== 'undefined' && timerManager && timerManager.timer.state === 'Running') {
       timerManager.togglePause();
+      this.pausedTimer = true;
     }
-
+    this.items.forEach((item, i) => {
+      const current = i === this.currentSlideIndex;
+      item.style.background = current ? '#e3f2fd' : '#fff';
+      item.style.fontWeight = current ? 'bold' : 'normal';
+      if (current) item.setAttribute('aria-current', 'true'); else item.removeAttribute('aria-current');
+    });
+    this.returnFocus = document.activeElement;
+    this.error.textContent = '';
+    this.input.value = '';
     this.modal.style.display = 'flex';
-    console.log('[GotoFunction] Modal shown');
+    if (this.items[this.currentSlideIndex]) this.items[this.currentSlideIndex].scrollIntoView({ block: 'nearest' });
+    this.input.focus();
   }
 
-  /**
-   * Hide the goto modal
-   */
   hideModal() {
-    // Resume timer if it was paused by goto
-    if (typeof timerManager !== 'undefined' && timerManager && timerManager.timer.state === 'Paused') {
+    if (this.pausedTimer && typeof timerManager !== 'undefined' && timerManager && timerManager.timer.state === 'Paused') {
       timerManager.togglePause();
     }
-
+    this.pausedTimer = false;
     this.modal.style.display = 'none';
-    console.log('[GotoFunction] Modal hidden');
+    if (this.returnFocus && this.returnFocus.focus) this.returnFocus.focus();
   }
 
   /**
@@ -237,7 +206,7 @@ class GotoFunction {
   gotoSlide(slideIndex) {
     // Use the global showSlide function from the custom slide system
     if (typeof showSlide === 'function') {
-      showSlide(slideIndex);
+      showSlide(slideIndex, 'goto');
 
       // Update global currentSlide variable
       if (typeof currentSlide !== 'undefined') {
@@ -253,30 +222,24 @@ class GotoFunction {
   /**
    * Set up keyboard handler for 'G' key
    */
+  /** Open goto, unless break mode is on (AC-6). */
+  open() {
+    if (window.MDSlidesBreakMode && window.MDSlidesBreakMode.isBreakModeActive()) return;
+    this.showModal();
+  }
+
   setupKeyboardHandler() {
     document.addEventListener('keydown', (event) => {
-      // 'G' key - Show goto prompt (only if modal not already shown)
       if ((event.key === 'g' || event.key === 'G') && this.modal.style.display === 'none') {
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+        if (event.target && event.target.closest && event.target.closest('input, textarea, select, [contenteditable]')) return;
         event.preventDefault();
-
-        // Check if break mode is active (AC-6: Goto disabled during break)
-        if (typeof window.MDSlidesBreakMode !== 'undefined' && window.MDSlidesBreakMode && window.MDSlidesBreakMode.isBreakModeActive()) {
-          // Show error message
-          alert('Goto is disabled during break mode');
-          console.log('[GotoFunction] Blocked: Break mode is active');
-          return;
-        }
-
-        this.showModal();
-      }
-
-      // Escape key - Hide modal
-      if (event.key === 'Escape' && this.modal.style.display !== 'none') {
-        event.preventDefault();
-        this.hideModal();
+        this.open();
       }
     });
-
+    // The slide counter opens goto too (touch screens have no G key)
+    const counter = document.getElementById('slide-counter');
+    if (counter) counter.addEventListener('click', () => this.open());
     console.log('[GotoFunction] Keyboard handlers registered (G, Escape)');
   }
 }
