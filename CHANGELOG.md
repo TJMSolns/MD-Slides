@@ -27,6 +27,8 @@ documented. This release fixes them, and makes the feature tour the tutorial, ac
 - **Diagram captions** (`caption:` frontmatter) are rendered.
 - **Break-screen images** (`--break-screen`, `breakScreen`) are copied into the output; a missing one is reported.
 - **Strikethrough** (`~~text~~`) renders.
+- **Diagrams without mermaid-cli** showed an empty box; they now show their source and an install notice.
+- Headings, captions and the author line produced invalid HTML (`<p>` inside `<h2>`).
 - **corporate theme** link/accent colour now meets WCAG 2.1 AA; the timer overlay uses the theme text colour.
 - On phones, footers keep clear of the controls bar, and wide code blocks shrink to fit.
 - `--help` showed an old version and a broken link; `config` named the product inconsistently.
