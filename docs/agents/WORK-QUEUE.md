@@ -9,7 +9,7 @@ Work items are driven by feature requests, bugs, and maintenance needs. IDs cont
 | ID | Item | Owner | Status | Depends On |
 |----|------|-------|--------|-----------|
 | MS-027 | `--watch` live reload: re-render on save and reload the browser on the current slide (parsed today but not implemented; the CLI now says so). Needs design: polling vs file watcher, and how the page reloads without losing its place (the `#N` deep link helps). | Claude | Queued | — |
-| MS-028 | v1.1.1: full-surface verification of v1.1.0 against the released jar found a dozen features not working as documented; fixed, tour made tutorial + acceptance test + live demo, docs corrected. | Claude | In progress — see HL-070 | — |
+| MS-028 | v1.1.1: full-surface verification of v1.1.0 against the released jar found a dozen features not working as documented; fixed, tour made tutorial + acceptance test + live demo, docs corrected. | Claude | **Released v1.1.1; needs a verifier** — evidence `docs/agents/evidence/MS-028.md`; Tony's phone test pending | — |
 | MS-026 | One public repo: this repo becomes the only MD-Slides repo (harness moved in, history restarted clean, earlier private repo archived). | Claude | **Implementation complete, needs a verifier** — evidence `docs/agents/evidence/MS-026.md` | — |
 
 ---

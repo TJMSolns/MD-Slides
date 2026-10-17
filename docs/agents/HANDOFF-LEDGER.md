@@ -4,6 +4,27 @@ Append-only. New entries at the top. Numbering continues from the archived plann
 
 ---
 
+## HL-070 — 2026-10-17 — v1.1.1: every documented feature verified against the release (MS-028)
+
+**Session:** Tony + Claude (org root)
+
+**What happened:**
+- Tony asked whether the docs had been updated diligently after v1.1.0. A check of every documented claim against
+  the released jar found a dozen features that didn't work as documented (headline: speaker-view sync never worked,
+  session analytics was dead code, goto had no number entry, print gave one page). All fixed in v1.1.1; see
+  `docs/agents/evidence/MS-028.md` and CHANGELOG [1.1.1].
+- The feature tour is now the tutorial, the acceptance test and the live demo (https://www.tjm.solutions/mdslides/demo/):
+  51 slides, a **Try it** step per feature. `docs/FEATURES.md` maps every feature to its slide, docs page and check.
+- Release procedure in CLAUDE.md rewritten: verify every public claim against the released artifacts, run the
+  site's browser check, then a real phone.
+- v1.1.1 released (`7c5363a`, three assets, digests verified, CI green). Live demo built from it; browser check 23/23.
+
+**Decisions made:** none recorded as ADR/PDR (Tony's directives: the tour is tutorial + test; done = full surface).
+**Open items:** MS-028 verifier pass; Tony's phone test; MS-027 (`--watch`).
+**Next owner:** Tony (phone test).
+
+---
+
 ## HL-069 — 2026-10-17 — One public repo (MS-026)
 
 **Session:** Tony + Claude (org root)
