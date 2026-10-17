@@ -148,6 +148,12 @@ object MarkdownParser:
         case Right(twoColumnSlots) => twoColumnSlots
       case _ => return Left(s"Slide $slideNumber: Unknown template '$templateName'")
 
+    // Images need alt text (WCAG 1.1.1); report them rather than dropping them at render time
+    val missingAlt = baseSlots.values.flatMap(FlexmarkAdapter.imagesMissingAlt).headOption
+    if missingAlt.isDefined then
+      val url = missingAlt.get
+      return Left(s"Slide $slideNumber: image '$url' has no alt text (WCAG 1.1.1). Describe it: ![what the image shows]($url)")
+
     // Add optional frontmatter title override to slots (v3.0.0) — this is template
     // content (SlotName.Title), not out-of-band metadata.
     var slots = baseSlots

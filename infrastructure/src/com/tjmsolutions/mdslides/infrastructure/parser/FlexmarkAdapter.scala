@@ -48,6 +48,20 @@ object FlexmarkAdapter:
    * @param markdown Raw markdown text
    * @return FormattedContent with parsed structure
    */
+  /** URLs of images written without alt text (`![](url)`). Code samples are not images, so they are ignored. */
+  def imagesMissingAlt(markdown: String): List[String] =
+    val found = scala.collection.mutable.ListBuffer.empty[String]
+    def walk(node: Node): Unit =
+      node match
+        case image: Image if image.getText.toString.trim.isEmpty => found += image.getUrl.toString
+        case _ => ()
+      var child = node.getFirstChild
+      while child != null do
+        walk(child)
+        child = child.getNext
+    walk(parser.parse(markdown))
+    found.toList
+
   def parseInlineFormatting(markdown: String): FormattedContent =
     if markdown.trim.isEmpty then
       return FormattedContent.empty

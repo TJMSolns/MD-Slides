@@ -6,7 +6,7 @@ template: title
 
 ## The complete feature reference
 
-**MD-Slides v1.0.0**
+**Tutorial · feature test · live demo**
 
 <!-- Speaker notes: This tour covers every feature in MD-Slides: all six templates, every content type, keyboard navigation, speaker view, CLI commands, themes, configuration, and validation. Two-column slides show the markdown you type on the left and what it renders on the right. Open examples/feature-tour.md alongside this presentation to see exactly what produced each slide. -->
 
@@ -16,13 +16,15 @@ template: content
 
 ## How to read this tour
 
-Every feature is demonstrated by **using it**. Two-column slides show markdown source on the left, the rendered result on the right — nothing else.
+Every feature is demonstrated by **using it**. Two-column slides show the Markdown on the left and what it produces on the right.
 
-**Escaping note:** Slide separators (`---`) cannot appear as bare lines inside code blocks — the parser splits on them before markdown processing. All code examples show slide body content only, omitting the surrounding `---` markers. Open `examples/feature-tour.md` to see the full format.
+**Try it** lines are things to do right now, on this deck. If one doesn't work, that's a bug: this deck is MD-Slides' tutorial *and* its acceptance test.
 
-Seven sections: Templates · Content · Speaker view · Navigation · CLI · Themes · Validation
+Slide separators (`---`) can't appear as bare lines inside code blocks, so the examples show slide bodies only. Open `feature-tour.md` for the full format.
 
-<!-- Speaker notes: The two-column convention is central to the tour. Left column shows what you type; right column shows only what that produces — no added commentary. The escaping note is important: the parser operates at text level before markdown parsing. See the source file for the actual frontmatter structure with surrounding --- markers. -->
+Eight sections: Templates · Content · Speaker view · Navigation · Any screen · CLI · Themes · Validation
+
+<!-- Speaker notes: The two-column convention is central to the tour. Left column shows what you type; right column shows only what that produces. Try-it lines turn the tour into a checklist: walk through them on a laptop and a phone before every release. The escaping note matters because the parser splits slides on --- before Markdown processing. -->
 
 ---
 template: section-title
@@ -338,6 +340,42 @@ java -jar md-slides.jar \
 <!-- Speaker notes: Any language supported by highlight.js works — just use the correct identifier after the opening fence. Python and Bash are shown here side by side because they appear frequently in presentations about tools and algorithms. Both columns are purely code — no added explanatory text. -->
 
 ---
+template: content
+---
+
+## Long code listings
+
+```scala
+def spell(n: Int): String = n match
+    case  0 => "zero"
+    case  1 => "one"
+    case  2 => "two"
+    case  3 => "three"
+    case  4 => "four"
+    case  5 => "five"
+    case  6 => "six"
+    case  7 => "seven"
+    case  8 => "eight"
+    case  9 => "nine"
+    case 10 => "ten"
+    case 11 => "eleven"
+    case 12 => "twelve"
+    case 13 => "thirteen"
+    case 14 => "fourteen"
+    case 15 => "fifteen"
+    case 16 => "sixteen"
+    case 17 => "seventeen"
+    case 18 => "eighteen"
+    case 19 => "nineteen"
+    case 20 => "twenty"
+    case _  => n.toString
+```
+
+Code blocks over 20 lines shrink to fit, and don't count against the 12-line body limit.
+
+<!-- Speaker notes: This block is deliberately long. MD-Slides scales the font of code blocks longer than 20 lines, and fit-to-slide makes sure the whole slide still fits the screen. -->
+
+---
 template: two-column
 ---
 
@@ -391,21 +429,21 @@ Column alignment: `|:---:|` center · `|---:|` right
 
 ---
 template: content
-background: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IGZpbGw9IiMxYTNhNWMiIHdpZHRoPSIxIiBoZWlnaHQ9IjEiLz48L3N2Zz4=
+background: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgNDBMNDAgMCIgc3Ryb2tlPSIjODg4IiBzdHJva2Utb3BhY2l0eT0iMC4yNSIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+
 ---
 
 ## Per-slide background image
 
-This slide uses a background image set in frontmatter — the dark blue behind this text came from:
+The diagonal stripes behind this slide come from its frontmatter. In your own deck you'd write:
 
 ```
 template: content
-background: images/dark-blue.png
+background: images/stripes.png
 ```
 
-Per-slide `background:` takes an image path. It overrides the theme background for this slide only. Supports any browser-renderable format: PNG, JPEG, SVG, WebP.
+`background:` takes an image path (copied into the output) or a `data:` URL, as here, which keeps the tour a single file. It overrides the theme background for this slide only. PNG, JPEG, SVG and WebP all work.
 
-<!-- Speaker notes: The dark blue background on this slide came from the background: frontmatter key — it's a 1x1 dark blue SVG encoded as a base64 data URL. In a real presentation you'd point to a local file: background: images/bg.jpg. Per-slide backgrounds are useful for emphasis slides. They override only this slide; all other slides use the theme background. -->
+<!-- Speaker notes: This slide's background is a small SVG pattern encoded as a data URL, so feature-tour.md works on its own. The pattern is translucent, so text keeps the theme's contrast in both light and dark themes; a solid dark image would make dark-theme-light text fine but break the light theme. Per-slide backgrounds override only this slide. -->
 
 ---
 template: section-title
@@ -448,18 +486,17 @@ Notes are **never** visible in the main window.
 template: content
 ---
 
-## Speaker view layout and timer
+## Speaker view: layout, sync and timer
 
-The speaker window shows four panels:
+The speaker window shows the slide counter with ‹ › buttons, the elapsed timer, your notes, and the next slide's heading. On a phone it becomes one column.
 
-1. **Current slide** — small preview of what the audience sees
-2. **Next slide heading** — so you can bridge transitions smoothly
-3. **Speaker notes** — your notes for this slide
-4. **Elapsed timer** — tracks time from first navigation
+The two windows stay in step: move in either one and the other follows (same browser, same device).
 
-Timer controls: **T** pauses/resumes · **R** resets to 00:00:00. Use `{{timer}}` in headers or footers to display the live value on slides.
+Timer: **T** pauses or resumes, **R** resets. `{{timer}}` in a header or footer shows it on slides.
 
-<!-- Speaker notes: The speaker view timer is separate from the header/footer display but shows the same value. Press T to pause without entering break mode. Press R when rehearsing. The timer starts on first arrow-key or space navigation, not on page load. -->
+**Try it:** press **S**, then change slides in either window.
+
+<!-- Speaker notes: Speaker view and the presentation synchronise through the browser's local storage events, so both windows must be in the same browser on the same device. Opening speaker.html on a phone will not follow a laptop. The timer starts on the first slide change, not on page load. Navigation keys, the buttons and swipes all work in speaker view; break mode, goto, history and timer keys belong to the main window. -->
 
 ---
 template: section-title
@@ -483,7 +520,7 @@ template: content
 | `←` `↑` `PgUp` | Previous slide |
 | `Home` / `End` | First / last slide |
 | `F` / `S` | Fullscreen / speaker view |
-| `B` | Toggle break mode |
+| `B` / `L` | Break mode / save session log |
 | `G` | Goto: type slide number, press Enter |
 | `P` / `N` | History back / forward |
 | `T` / `R` | Pause / reset timer |
@@ -496,17 +533,84 @@ Clickers just work. On a phone or tablet, swipe, tap, or use the ‹ › buttons
 template: content
 ---
 
-## Break mode and goto
+## Break mode, goto and history
 
-**Break mode (B):** Hides the presentation from the audience while you take a break. The timer pauses automatically. Press B again to resume. Configure a custom break screen image in your theme JSON.
+**Break mode (B):** hides the slides and pauses the timer. Press B again to resume. Set a custom image with `--break-screen` or `breakScreen` in your config.
 
-**Goto (G):** Press G, type a slide number, press Enter. Jumps directly to that slide — 1-indexed, matching the slide counter.
+**Goto (G):** type a slide number and press Enter, or pick a slide from the list. On a touch screen, tap the slide counter.
 
-**History navigation (P/N):**
-- `P` — back through your navigation history (not just previous numbered slide)
-- `N` — forward through history, or next slide if no forward history
+**History (P / N):** back and forward through the slides you actually visited.
 
-<!-- Speaker notes: Break mode is essential for Q&A sessions. While the audience sees the break screen, you still see your current slide and notes in speaker view. The history stack records your full navigation path — P takes you back through your actual path. Goto is invaluable when someone asks 'can you go back to slide 12?' -->
+**Try it:** press **G**, type 3, press Enter, then press **P** to come back here.
+
+<!-- Speaker notes: Break mode is for pauses and Q&A: the audience sees the break screen while your speaker view keeps your place. Goto pauses the timer while it is open. History follows your real path, so after a goto, P returns to where you were rather than to the previous numbered slide. Goto is disabled while break mode is on. -->
+
+---
+template: section-title
+---
+
+## Any screen
+
+Laptop, projector, phone or tablet
+
+<!-- Speaker notes: This section exercises mobile presenting and fit-to-slide. Walk through it on a phone before every release. -->
+
+---
+template: two-column
+---
+
+## Touch, clickers and fullscreen
+
+**Touch screens:**
+- Swipe left or right
+- Tap the right side (next) or the left side (back)
+- Use the ‹ › buttons by the counter
+
+**Clickers** send Page Down / Page Up or arrow keys, so they just work.
+
+---column---
+
+**Fullscreen:** press **F** or the ⛶ button (hidden where the browser can't do it, as on iPhone).
+
+**Try it:** swipe to the next slide, then come back with a tap on the left.
+
+<!-- Speaker notes: Taps only navigate for touch and pen input, never for a mouse, so text selection on a laptop still works. Vertical drags, pinch-zoomed panning and scrolling a wide code block sideways do not change slides. On phones the layout respects the notch and uses the visible screen height so browser toolbars do not cut slides off. -->
+
+---
+template: content
+---
+
+## Fit to the screen: a deliberately wide slide
+
+| Stage | Input | Parser | Validator | Renderer | Theme | Assets | Output |
+|-------|-------|--------|-----------|----------|-------|--------|--------|
+| 1 | `deck.md` | Flexmark | Structure | Scalatags | JSON | Images | `index.html` |
+| 2 | Frontmatter | Slots | Density | Speaker view | Fonts | Diagrams | `speaker.html` |
+| 3 | Notes | Templates | WCAG 2.1 AA | Navigation JS | Colours | Break image | Session log |
+
+This table is wider than a phone screen. The slide shrinks to fit, and the table re-wraps rather than overflowing.
+
+**Try it:** rotate your phone, or resize this window. The slide re-fits.
+
+<!-- Speaker notes: Fit-to-slide first shrinks wide tables, diagrams, code and images to the available width, then scales the whole slide to the largest size that fits. If a slide would need to drop below 35 percent it scrolls instead, which usually means the slide has too much on it. -->
+
+---
+template: content
+---
+
+## Links to a slide
+
+The address bar tracks the current slide as `#N`. Reloading keeps your place, and a link can open any slide:
+
+```
+https://www.tjm.solutions/mdslides/demo/#12
+```
+
+Changing slides doesn't add browser history, so Back (or a phone's back gesture) leaves the deck rather than stepping through it. Use **P** and **N** for slide history.
+
+**Try it:** look at the address bar, then reload. You stay on this slide.
+
+<!-- Speaker notes: Deep links use history.replaceState, which updates the URL without adding history entries. This is what lets you send someone a link to the exact slide a question was about. -->
 
 ---
 template: section-title
@@ -530,22 +634,20 @@ java -jar md-slides.jar render my-talk \
   --theme dark
 ```
 
-Output: a `my-talk/` directory with `index.html`, `speaker.html`, and copied image assets.
-
-Path flexibility: `my-talk`, `my-talk.md`, and `talks/my-talk` all resolve correctly.
+`my-talk`, `my-talk.md` and `talks/my-talk` all resolve. Errors (structure, missing alt text) stop the render; density limits only warn.
 
 ---column---
 
 ```
 my-talk/
-  index.html      ← main presentation
+  index.html      ← presentation
   speaker.html    ← speaker view
+  sync.js         ← plus 7 small
+  …                 support scripts
   images/         ← copied assets
 ```
 
-Validates first — all errors shown together. No output is written until every slide passes.
-
-<!-- Speaker notes: The render command validates first. If validation fails, all errors are printed together and nothing is written. The output directory is created if it doesn't exist. Existing output is overwritten without warning. -->
+<!-- Speaker notes: render validates first and collects every problem in one pass. Structural errors and accessibility failures stop the render; density overruns are warnings, because sometimes a dense slide is the right call. The output folder is self-contained: open index.html from disk or host the folder anywhere. -->
 
 ---
 template: content
@@ -555,16 +657,16 @@ template: content
 
 | Flag | Default | Purpose |
 |------|---------|---------|
-| `--theme THEME` | `light` | Built-in name or path to `theme.json` |
-| `--no-copy-images` | copy on | Skip copying image assets to output |
+| `--theme NAME` | `light` | `light`, `dark`, `corporate`, or a theme folder in `./themes` |
+| `--no-copy-images` | copy on | Skip copying image assets |
 | `--skip-accessibility` | check on | Skip WCAG 2.1 AA validation |
 | `--accessibility-report FILE` | off | Write validation results to JSON |
-| `--break-screen IMAGE` | none | Image shown during break mode (B) |
-| `-i FILE` / `-o DIR` | — | Explicit input / output paths |
+| `--break-screen IMAGE` | none | Image shown in break mode |
+| `-i FILE` / `-o DIR` | — | Explicit input and output paths |
 
-Use `--theme ./path/to/theme.json` to load a custom theme by file path.
+Custom themes are folders: `themes/mytheme/theme.json`, used as `--theme mytheme`.
 
-<!-- Speaker notes: The -i/-o form is useful when input and output directories don't share a name. --accessibility-report writes a structured JSON file suitable for CI checks. --break-screen sets the image displayed to the audience while break mode is active. -->
+<!-- Speaker notes: Themes are found by name in ./themes next to where you run the command, or in the folder set by paths.themesDir in your global config. Run with --help for the full list of commands and options. -->
 
 ---
 template: content
@@ -576,49 +678,46 @@ template: content
 java -jar md-slides.jar config
 ```
 ```
-CLI: (no overrides)
-Project (.mdslides/config.json): theme=dark
-Global (~/.mdslides/config.json): (not set)
-Merged: theme=dark, copyImages=true
+Global Configuration:
+  Location: ~/.mdslides/config.json
+  Settings:
+    defaults.theme: light
+Project Configuration:
+  Location: .mdslides/config.json
+  Settings:
+    theme: dark
 ```
 
-Useful for diagnosing unexpected rendering — shows exactly which settings are in effect and where they came from across all four configuration layers.
+Shows which settings are in effect and which file each came from.
 
-<!-- Speaker notes: The config command is a diagnostic tool. When something renders unexpectedly, run config to see which settings are active and where they came from. The four-layer merge means a project config can override your personal global config, and a CLI flag overrides both. -->
+<!-- Speaker notes: Useful for diagnosing an unexpected theme or output folder. The real output also lists the priority order and the fields each file accepts. -->
 
 ---
 template: two-column
 ---
 
-## display and report: tracked sessions
+## Session log: how did the talk go?
 
-```bash
-# Open with session logging
-java -jar md-slides.jar display my-talk
-```
+While presenting, MD-Slides records every slide change (and how it happened), timer pauses and breaks.
 
-Writes events to `my-talk/deck.log`:
-- Navigation events with method
-- Timer start / pause / resume
-- Break mode toggles
-- Session start and end
+Press **L** to save the log. Your browser saves it as `my-talk-<date>-<time>.log.json`.
+
+**Try it:** press **L** now.
 
 ---column---
 
 ```bash
-# After presenting, analyze
 java -jar md-slides.jar report my-talk
 ```
 
 Report shows:
-- Total time (excl. breaks)
-- Per-slide time spent
-- Navigation path taken
-- Break durations
+- Time per slide, breaks excluded
+- The path you took
+- Breaks, and how you navigated
 
-Review after each talk to improve pacing.
+It finds the newest log in Downloads, or use `--log FILE`.
 
-<!-- Speaker notes: The display command is identical to render but enables session logging. The report command reads the log and generates analytics. Over multiple presentations you can track improvement in pacing and identify which slides consistently run long. -->
+<!-- Speaker notes: The log stays in the page until you press L, so nothing is sent anywhere. Save it at the end of a talk, or mid-way: a mid-way save is marked as such in the report. report looks in the deck folder, the current folder and ~/Downloads for the newest log for that deck. -->
 
 ---
 template: content
@@ -626,17 +725,40 @@ template: content
 
 ## Smart default: no subcommand needed
 
-MD-Slides infers what you want from context:
-
 ```bash
-java -jar md-slides.jar my-talk           # → render
-java -jar md-slides.jar my-talk.md        # → render
-java -jar md-slides.jar my-talk --display # → display
+java -jar md-slides.jar my-talk
 ```
 
-If the output directory already contains `deck.log`, the smart default switches to `display` automatically — it assumes you're re-presenting an existing deck, not doing a first render.
+1. If a saved session log exists, shows its report
+2. Renders if `my-talk.md` changed since the last render
+3. Opens the presentation in your browser
 
-<!-- Speaker notes: The smart default reduces friction for the common case. The --display flag explicitly opts into session logging. The auto-detection based on deck.log is a convenience for repeat presentations of the same deck. -->
+`display my-talk` just opens it; `render my-talk` just renders.
+
+<!-- Speaker notes: The smart default is the rehearsal loop: run it, present, press L, run it again and you see how the last run went before the deck opens. -->
+
+---
+template: two-column
+---
+
+## MCP server: decks from an AI assistant
+
+`mdslides-mcp.jar` (on the releases page) runs MD-Slides as a Model Context Protocol server over stdio.
+
+```bash
+java -jar mdslides-mcp.jar
+```
+
+---column---
+
+| Tool | Does |
+|------|------|
+| `render_deck` | Render a deck |
+| `validate_deck` | Check a deck |
+| `list_themes` | List themes |
+| `get_deck_info` | Count slides, templates, images |
+
+<!-- Speaker notes: The MCP server is stateless and file-in, file-out: an assistant writes Markdown, calls render_deck, and gets the same output the CLI produces. Add it to your assistant's MCP configuration as a command that runs java -jar mdslides-mcp.jar. -->
 
 ---
 template: two-column
@@ -686,31 +808,25 @@ template: two-column
 
 ## Fullscreen and browser tips
 
-**Go fullscreen during your presentation:**
+**Fullscreen:** **F**, the ⛶ button, or **F11** (Windows/Linux) / **Ctrl+Cmd+F** (Mac).
 
-- **F** or the ⛶ button beside the slide counter
-- **F11** (Windows/Linux) or **Ctrl+Cmd+F** (Mac) — browser fullscreen
-
-Slides scale to fit any screen. Add `#12` to the URL to open slide 12.
-
-**Recommended:** Chrome or Firefox — both support BroadcastChannel for speaker view sync.
+**Syntax highlighting** loads from a CDN, so code is highlighted when you're online. Everything else works offline.
 
 ---column---
 
 **Opening speaker view:**
 
-1. Press **S** in the main window
-2. A new window opens — drag it to your laptop screen
-3. Navigate from either window — both stay synchronized
+1. Press **S** in the presentation
+2. Drag the new window to your laptop screen
+3. Navigate from either window
 
-**If speaker view won't open:** popup blockers may block `file://` URLs. Fix with a local server:
+**If speaker view won't open,** allow pop-ups for the page, or serve the folder:
 
 ```bash
 python3 -m http.server 8080
-# open http://localhost:8080/my-talk/
 ```
 
-<!-- Speaker notes: Browser popup blockers can prevent the speaker view window from opening on file:// URLs. The simplest fix is a local HTTP server — python3 -m http.server avoids the file:// restriction. Alternatively, allow popups for the file:// origin in your browser settings. -->
+<!-- Speaker notes: Some browsers block window.open for file:// pages; a local HTTP server avoids that. Both windows must be in the same browser. -->
 
 ---
 template: section-title
@@ -726,72 +842,63 @@ Built-in themes, custom JSON themes, and four-layer config
 template: content
 ---
 
-## Built-in themes: light and dark
+## Built-in themes
 
 ```bash
 java -jar md-slides.jar render my-talk --theme light  # default
 java -jar md-slides.jar render my-talk --theme dark
 ```
 
-**light** — white background, dark text, blue accents. Clean and professional for most venues.
+**light** — white background, dark text. **dark** — dark background, light text, teal accents. **corporate** — a neutral business look.
 
-**dark** — dark background, light text, teal accents. High contrast for dark rooms and screen sharing.
+All pass WCAG 2.1 AA contrast. This deck's live demo uses `dark`.
 
-Both themes pass WCAG 2.1 AA contrast requirements. This deck is rendered with the `dark` theme.
-
-<!-- Speaker notes: The light theme is the default when no theme is specified. The dark theme is recommended for conference rooms with poor lighting or for screen-sharing where a dark background reads better on compressed video. Both themes apply consistent syntax highlighting, slide counters, and speaker view styling. -->
+<!-- Speaker notes: Built-in themes need no files. Anything else is a theme folder, covered on the next slides. -->
 
 ---
 template: content
 ---
 
-## Theme backgrounds: color and image
+## Theme backgrounds: colour and image
 
-Deck-wide backgrounds are set in the theme JSON:
+In `themes/mytheme/theme.json`:
 
 ```json
-"background": { "color": "#1e1e1e" }
+"background": { "color": "#1e1e1e", "image": "images/deck-bg.jpg" },
+"templateBackgrounds": { "section-title": "images/section.png" }
 ```
 
-Or with a full-bleed image: `"background": { "image": "images/deck-bg.jpg" }`
+Theme image paths are relative to the theme folder, and are copied into your output.
 
-Per-template backgrounds override the deck default for specific slide types. Per-slide `background:` frontmatter overrides everything.
+Priority: per-slide `background:` > `templateBackgrounds` > deck background.
 
-Priority: per-slide frontmatter > per-template JSON > deck-wide theme > none
-
-<!-- Speaker notes: Background configuration has three tiers. The deck-wide background in the theme JSON sets the default for all slides. Per-template configuration in templateConfigurations overrides that for specific slide types — section-title and closing templates commonly have their own backgrounds. Per-slide background: frontmatter is the override of last resort for individual emphasis slides. -->
+<!-- Speaker notes: templateBackgrounds maps a template name to an image, so every section-title slide gets the same art without any per-slide frontmatter. -->
 
 ---
 template: two-column
 ---
 
-## Custom themes: JSON structure
+## Custom themes: a theme folder
 
-```json
-{
-  "name": "mytheme",
-  "colors": { "text": "#333", "accent": "#06c" },
-  "fonts": { "body": "Arial", "code": "monospace" },
-  "background": { "color": "#fff" }
-}
+```
+themes/
+  mytheme/
+    theme.json
+    images/
 ```
 
-Save as `mytheme/theme.json`. Use with `--theme ./mytheme/theme.json`.
+```bash
+java -jar md-slides.jar render \
+  my-talk --theme mytheme
+```
 
 ---column---
 
-```json
-{
-  "syntax": { "keyword": "#00f", "string": "#0a0" },
-  "slideCounter": { "color": "#666" },
-  "spacing": { "slideMargin": "2rem", "lineHeight": "1.6" },
-  "breakScreen": "images/break.png"
-}
-```
+`theme.json` needs every section: `name`, `version`, `background`, `colors`, `fonts`, `spacing`, `syntax`, `slideCounter`.
 
-Only include keys you want to change — everything else falls back to built-in defaults.
+Copy a complete example from the docs' Themes page and change what you need.
 
-<!-- Speaker notes: Custom themes override any visual property. The left column shows the core keys; the right shows the optional sections. You only need to specify what you want to change. The breakScreen path in the theme is the default break image; it can be overridden per-render with --break-screen. -->
+<!-- Speaker notes: A theme with missing sections is rejected, so start from the full schema in the Themes documentation. Themes are looked up by name in ./themes, or in paths.themesDir from your global config. -->
 
 ---
 template: two-column
@@ -800,49 +907,50 @@ template: two-column
 ## Per-template configuration in themes
 
 ```json
-"templateConfigurations": [
-  {
-    "template": "section-title",
-    "background": { "image": "section-bg.png" },
-    "header": "{{pageNumber}}/{{totalPages}}"
+"templateConfig": {
+  "section-title": {
+    "header": "{{pageNumber}}/{{totalPages}}",
+    "verticalAlign": "top"
   },
-  {
-    "template": "closing",
-    "background": { "color": "#111" }
+  "closing": {
+    "footer": "{{title}} · {{date}}"
   }
-]
+}
 ```
 
 ---column---
 
 | Key | Effect |
 |-----|--------|
-| `template` | Which slide type this applies to |
-| `background` | Color or image for this template |
-| `header` | Header text with token support |
-| `footer` | Footer text with token support |
+| `header` | Header text, with tokens |
+| `footer` | Footer text, with tokens |
+| `verticalAlign` | `top` `center` `bottom` |
+| `colors` | Colour overrides |
 
-Every slide of that type gets this configuration automatically — no per-slide frontmatter needed.
+Every slide of that template gets it, with no frontmatter needed.
 
-<!-- Speaker notes: templateConfigurations is the primary way to give a theme a distinct visual identity per section. A common pattern: section-title slides have a full-bleed background that signals a major transition; closing slides are branded. This is all JSON configuration — no code required. -->
+<!-- Speaker notes: templateConfig is keyed by template name. Per-slide frontmatter still wins over it for a single slide. -->
 
 ---
 template: content
 header: Feature Tour — Slide {{pageNumber}} of {{totalPages}}
+footer: {{title}} · {{date}} · {{timer}}
 ---
 
 ## Per-slide header and footer: live demo
 
-This slide carries a `header:` key in its frontmatter:
+This slide's frontmatter:
 
 ```
-template: content
 header: Feature Tour — Slide {{pageNumber}} of {{totalPages}}
+footer: {{title}} · {{date}} · {{timer}}
 ```
 
-Look at the top of this slide — the header is rendered there with `{{pageNumber}}` and `{{totalPages}}` resolved to real values. The same works for `footer:`. Per-slide frontmatter overrides the theme for that one slide.
+Tokens: `{{pageNumber}}` `{{totalPages}}` `{{timer}}` `{{title}}` (the deck title) `{{date}}` (today).
 
-<!-- Speaker notes: The header at the top of this slide came from frontmatter, not from the theme. This is the most direct way to demonstrate the feature — the slide itself is the demo. Available tokens: pageNumber, totalPages, timer, date. The theme sets default headers and footers; per-slide frontmatter overrides them for individual slides. -->
+**Try it:** check the header and footer on this slide. The timer ticks.
+
+<!-- Speaker notes: Per-slide header and footer override the theme and config for this slide only. Set deck-wide ones with templateConfig in the theme, or header and footer in .mdslides/config.json. -->
 
 ---
 template: content
@@ -869,20 +977,19 @@ template: content
 
 ## Four-layer configuration
 
-Settings applied in priority order (highest wins):
-
-1. **CLI flags** — `--theme dark`, `-o dist`
-2. **Project config** — `.mdslides/config.json` committed with your repo
-3. **Global config** — `~/.mdslides/config.json` personal preferences
-4. **Built-in defaults** — always present as the base
+Highest wins: **CLI flags** > **project** `.mdslides/config.json` > **global** `~/.mdslides/config.json` > **defaults**
 
 ```json
-{ "theme": "dark", "outputDir": "dist" }
+{ "theme": "dark", "outputDir": "dist", "breakScreen": "images/break.png" }
 ```
 
-Commit project config so everyone on the team renders with the same theme.
+```json
+{ "defaults": { "theme": "light" }, "paths": { "themesDir": "~/themes" } }
+```
 
-<!-- Speaker notes: The four-layer hierarchy solves a real problem: team-wide defaults (project config), personal overrides (global config), and per-run overrides (CLI flags). A conference organizer can commit a project config with the house theme so every speaker gets it automatically. Run 'java -jar md-slides.jar config' to see the merged result. -->
+The first is a project config; the second a global one, where settings go under `defaults`.
+
+<!-- Speaker notes: Project config accepts theme, copyImages, skipAccessibility, accessibilityReportPath, outputDir, header, footer and breakScreen. Global config accepts defaults, author and paths; unknown fields are rejected so typos are caught. Commit the project config so everyone renders the same way. -->
 
 ---
 template: section-title
@@ -900,37 +1007,33 @@ template: content
 
 ## What gets validated
 
-MD-Slides checks every slide before rendering:
+**Errors** (the render stops): missing required slots, unknown templates, a two-column slide without exactly one `---column---`, images without alt text, image files that don't exist.
 
-**Structure:** required slots present, template declared, frontmatter well-formed
+**Warnings** (the render continues): headings over 80 characters, bodies over 12 lines or 150 words, columns over 10 lines or 75 words, theme colours below WCAG 2.1 AA contrast.
 
-**Density:** heading ≤ 80 chars; body ≤ 12 lines and 150 words; columns ≤ 10 lines and 75 words
-
-**Accessibility:** images have alt text; contrast ratios meet WCAG 2.1 AA
-
-**Template rules:** title H1 ≤ 2 lines; subtitle ≤ 2 lines; author ≤ 80 chars; two-column has exactly one `---column---`
-
-<!-- Speaker notes: Validation is not optional — every render runs all checks. The --skip-accessibility flag bypasses WCAG contrast checks only, not structural or density validation. You always get feedback on content density before the audience sees your slides. -->
+<!-- Speaker notes: Density limits are guidance: a dense slide renders with a warning, and fit-to-slide shrinks it to fit. Errors are things that would make the deck broken or inaccessible. -->
 
 ---
 template: content
 ---
 
-## Validation output: all errors at once
+## Validation output: everything at once
 
 ```
 ✗ Validation failed:
-  - Slide 3: body exceeds max 12 lines (has 17)
-  - Slide 5: heading exceeds max 80 characters (has 94)
-  - Slide 7: image is missing alt text
-  - Slide 12: two-column left exceeds max 10 lines (has 13)
+  - Slide 3: Structure Error - Required slot 'heading' is missing
+  - Slide 3: Structure Error - Required slot 'body' is missing
 ```
 
-Fix all of them, then render again. No output is written until every slide passes.
+```
+✓ Validation passed with 1 warning(s):
+  - Slide 2: Density Warning in 'body' slot - Content exceeds
+    recommended line limit (actual: 17, guidance: 12 lines)
+```
 
-The domain model uses `Either[NonEmptyList[ValidationError], SlideDeck]` — errors accumulate rather than short-circuit. An empty error list is a type-level impossibility.
+Validation reports every problem in one pass, so you fix them all at once. An image without alt text is reported by name: `![what it shows](photo.png)`.
 
-<!-- Speaker notes: The error accumulation design is deliberate. Stopping at the first error means a loop: fix, render, find next error, fix, render. Showing everything at once respects your time. The NonEmptyList guarantee means a Left always has at least one error — a structural contract, not just a convention. -->
+<!-- Speaker notes: The domain model uses Either[NonEmptyList[ValidationError], SlideDeck], so errors accumulate rather than stopping at the first one. -->
 
 ---
 template: closing

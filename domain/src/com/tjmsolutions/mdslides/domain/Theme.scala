@@ -229,8 +229,8 @@ object Theme:
     colors = ColorScheme(
       text = "#212529",
       heading = "#0056b3",
-      accent = "#007bff",
-      link = "#007bff",
+      accent = "#0062cc",  // 5.5:1 on #f8f9fa (WCAG 2.1 AA)
+      link = "#0062cc",
       linkHover = "#0056b3",
       codeBackground = "#e9ecef",
       codeText = "#212529"
@@ -250,7 +250,7 @@ object Theme:
       keyword = "#0056b3",
       string = "#28a745",
       comment = "#6c757d",
-      function = "#007bff",
+      function = "#0062cc",
       number = "#e83e8c",
       operator = "#212529"
     ),

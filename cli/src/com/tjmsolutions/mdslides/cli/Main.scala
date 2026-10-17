@@ -478,7 +478,7 @@ object Main extends IOApp:
 
       // Display header
       _ <- IO.println("═" * 70)
-      _ <- IO.println("MDSlides Configuration")
+      _ <- IO.println("MD-Slides configuration")
       _ <- IO.println("═" * 70)
       _ <- IO.println("")
 

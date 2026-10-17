@@ -274,6 +274,8 @@ object HTMLRenderer:
     .slide-footer {
       width: 100%;
       padding: 0.5rem 1rem;
+      /* Leave room for the floating controls bar (width measured at runtime) */
+      padding-right: max(1rem, var(--controls-width, 0px));
       font-size: 0.9rem;
       color: ${theme.colors.text};
       background-color: ${theme.background.color};
@@ -314,13 +316,16 @@ object HTMLRenderer:
       z-index: 999;
       font-family: monospace;
       font-size: 0.75rem;
-      color: rgba(100, 100, 100, 0.75);
+      color: ${theme.colors.text};
+      opacity: 0.8;
       pointer-events: none;
       user-select: none;
     }
 
+    /* Paused: marked by style, not by fading below readable contrast */
     .presentation-timer.timer-paused {
-      opacity: 0.4;
+      font-style: italic;
+      text-decoration: underline dotted;
     }
 
     .title-slide {
@@ -1560,7 +1565,10 @@ object HTMLRenderer:
         const cs = getComputedStyle(parent);
         const available = parent.clientWidth - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0);
         const isReplaced = el.tagName.toLowerCase() === 'svg' || el.tagName.toLowerCase() === 'img';
-        const natural = isReplaced ? el.getBoundingClientRect().width : el.scrollWidth;
+        // Code blocks: highlight.js makes the inner <code> the scroller, so add its hidden overflow
+        const inner = el.tagName.toLowerCase() === 'pre' ? el.querySelector('code') : null;
+        const hidden = inner ? Math.max(0, inner.scrollWidth - inner.clientWidth) : 0;
+        const natural = isReplaced ? el.getBoundingClientRect().width : el.scrollWidth + hidden;
         // 1.5% safety margin: glyph rounding changes slightly once an outer zoom is applied
         const target = available * 0.985;
         if (available > 0 && natural > available + 1) {
@@ -1772,6 +1780,14 @@ object HTMLRenderer:
       if (e.clientX < window.innerWidth * 0.3) prevSlide('tap'); else nextSlide('tap');
     });
 
+    // Footers keep clear of the controls bar: expose its width to CSS
+    function measureControls() {
+      const c = document.querySelector('.controls');
+      if (c) document.documentElement.style.setProperty('--controls-width', Math.ceil(c.getBoundingClientRect().width + 24) + 'px');
+    }
+    window.addEventListener('resize', measureControls);
+    window.addEventListener('load', measureControls);
+
     // On-screen buttons
     document.addEventListener('DOMContentLoaded', () => {
       const prevBtn = document.getElementById('nav-prev');
@@ -1785,6 +1801,7 @@ object HTMLRenderer:
       }
       if (prevBtn) prevBtn.disabled = currentSlide <= 0;
       if (nextBtn) nextBtn.disabled = currentSlide >= totalSlides - 1;
+      measureControls();  // after the fullscreen button may have been shown
     });
 
     // Deep link: #N opens slide N
