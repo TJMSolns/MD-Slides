@@ -758,6 +758,23 @@ object HTMLRenderer:
       .section-title-heading { font-size: clamp(28px, 8vmin, 64px); }
     }
 
+    /* Print / Save as PDF: every slide on its own landscape page, no on-screen controls */
+    @media print {
+      @page { size: landscape; margin: 0; }
+      body { overflow: visible; }
+      .slides { width: auto; height: auto; }
+      .slide {
+        display: flex !important;
+        width: 100vw;
+        height: 100vh;
+        break-after: page;
+        page-break-after: always;
+      }
+      .slide:last-child { break-after: auto; page-break-after: auto; }
+      .controls, .presentation-timer, #break-mode-overlay, .goto-modal, #mdslides-status { display: none !important; }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+
     /* Portrait phones: stack columns */
     @media (max-width: 600px) and (orientation: portrait) {
       .two-column-container {

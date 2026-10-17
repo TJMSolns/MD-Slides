@@ -44,3 +44,9 @@ class HTMLRendererSessionSpec extends munit.FunSuite:
 
   test("the slide counter is a button that opens goto, with an accessible name"):
     assert(html.contains("""<button type="button" class="slide-counter" id="slide-counter" aria-haspopup="dialog" aria-label="Slide 1 of 2, go to slide">1 / 2</button>"""))
+
+  test("printing (Save as PDF) shows every slide on its own page and hides the controls"):
+    val print = html.substring(html.indexOf("@media print"))
+    assert(print.contains("display: flex !important"))
+    assert(print.contains("break-after: page"))
+    assert(print.contains(".controls"))

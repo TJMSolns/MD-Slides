@@ -376,9 +376,17 @@ object Main extends IOApp:
       else
         IO.unit
 
+      // Break screen image: copy it into the output so the deck can show it
+      deckDir = Option(inputPath.toAbsolutePath.getParent).getOrElse(Paths.get(".").toAbsolutePath)
+      cwdForAssets <- IO.blocking(Paths.get(".").toAbsolutePath.normalize())
+      breakScreen <- IO.blocking(BreakScreenAsset.place(config.breakScreen, deckDir, cwdForAssets, outputDir)).flatMap {
+        case Right(placed) => IO.pure(placed)
+        case Left(warning) => IO.println(s"⚠ Warning: $warning — using the default break screen").as(None)
+      }
+
       // Render to HTML with theme, pre-rendered diagrams, header/footer, and break screen (v3.0.0)
       _ <- IO.println(s"Rendering HTML with theme: ${theme.name}")
-      html = HTMLRenderer.renderDeck(validatedDeck, theme, preRenderedDiagrams, config.header, config.footer, config.breakScreen)
+      html = HTMLRenderer.renderDeck(validatedDeck, theme, preRenderedDiagrams, config.header, config.footer, breakScreen)
       _ <- IO.println(s"✓ Generated ${html.length} characters of HTML")
 
       // Write index.html to output directory
@@ -745,6 +753,7 @@ Source: https://github.com/TJMSolns/MD-Slides""").as(ExitCode.Success)
       CLIArguments.parse(args.toArray) match
         case Right(cliArgs) =>
           for {
+            _ <- IO.whenA(cliArgs.watch)(IO.println("⚠ --watch (live reload) is not available yet; rendering once."))
             currentDir <- IO.blocking(Paths.get(".").toAbsolutePath.normalize())
             configAndGlobal <- loadConfiguration(cliArgs, currentDir)
             (config, globalConfig) = configAndGlobal

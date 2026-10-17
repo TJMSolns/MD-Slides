@@ -1,7 +1,7 @@
 import mill._
 import mill.scalalib._
 
-val mdSlidesVersion = "1.1.0"
+val mdSlidesVersion = "1.1.1"
 
 // Shared Scala 3 configuration for all modules
 trait MDSlidesModule extends ScalaModule {
@@ -96,6 +96,19 @@ object mcp extends MDSlidesModule {
     ivy"io.circe::circe-generic:0.14.6",
     ivy"io.circe::circe-parser:0.14.6"
   )
+
+  // Exposes mdSlidesVersion to the MCP serverInfo
+  override def generatedSources = T {
+    val dir = T.dest / "generated"
+    os.makeDir.all(dir)
+    os.write(
+      dir / "BuildInfo.scala",
+      s"""package com.tjmsolutions.mdslides.mcp
+         |object BuildInfo { val version = "$mdSlidesVersion" }
+         |""".stripMargin
+    )
+    Seq(PathRef(dir))
+  }
 
   def mainClass = T { Some("com.tjmsolutions.mdslides.mcp.Main") }
 

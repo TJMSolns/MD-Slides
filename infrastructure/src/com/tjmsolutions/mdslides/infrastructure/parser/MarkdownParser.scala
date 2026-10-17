@@ -152,6 +152,9 @@ object MarkdownParser:
     // content (SlotName.Title), not out-of-band metadata.
     var slots = baseSlots
     frontmatter.get("title").foreach(v => slots = slots + (SlotName.Title -> v))
+    // Diagram caption comes from frontmatter (the diagram template declares a caption slot)
+    if templateName == "diagram" then
+      frontmatter.get("caption").foreach(v => slots = slots + (SlotName.Caption -> v))
 
     // Frontmatter metadata (header/footer/vertical-align): a separate, raw-String-keyed
     // channel from `slots` (MS-017 design note Q2a) — these are config, not

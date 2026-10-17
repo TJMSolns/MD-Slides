@@ -18,7 +18,7 @@ object McpServer:
     ),
     "serverInfo" -> Json.obj(
       "name" -> Json.fromString("mdslides"),
-      "version" -> Json.fromString("1.1.0")
+      "version" -> Json.fromString(BuildInfo.version)
     ),
     "protocolVersion" -> Json.fromString("2024-11-05")
   )
