@@ -5,6 +5,43 @@ All notable changes to MD-Slides will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-10-17
+
+A verification pass of every documented feature against the released jar found features that did not work as
+documented. This release fixes them, and makes the feature tour the tutorial, acceptance test and live demo.
+
+### Fixed
+- **Speaker view sync:** the presentation never sent or received slide changes, so speaker view only showed the
+  slide it was opened on. Both windows now follow each other (same browser, same device). The 1.1.0 fix covered
+  speaker view's side only.
+- **Session analytics:** `display` wrote a log the browser never filled, so `report` always showed no events. The
+  presentation now records slide changes (and how they happened), timer pauses and breaks; press **L** to save the
+  log, and `report DECK` reads the newest one (deck folder, current folder or `~/Downloads`) or `--log FILE`. The
+  report shows time per slide (breaks excluded), the path taken, breaks and navigation methods.
+- **Goto:** the dialog had no number field and its list wasn't keyboard-accessible. Type a number and press Enter
+  (focus starts in the field), or pick from the list; on touch screens, tap the slide counter.
+- **Print / Save as PDF:** only the current slide printed. Each slide now prints on its own landscape page without
+  the on-screen controls.
+- **Header/footer tokens:** `{{title}}` (the deck title) and `{{date}}` (today) now render.
+- **Images without alt text** were silently dropped; they are now an error naming the slide and the image.
+- **Diagram captions** (`caption:` frontmatter) are rendered.
+- **Break-screen images** (`--break-screen`, `breakScreen`) are copied into the output; a missing one is reported.
+- **Strikethrough** (`~~text~~`) renders.
+- **corporate theme** link/accent colour now meets WCAG 2.1 AA; the timer overlay uses the theme text colour.
+- On phones, footers keep clear of the controls bar, and wide code blocks shrink to fit.
+- `--help` showed an old version and a broken link; `config` named the product inconsistently.
+- Break mode and history keys no longer fire with modifier keys held (Ctrl+P printed *and* went back a slide) or
+  while typing; the smart default no longer fails without a terminal.
+
+### Changed
+- The page title is the deck title (from the title slide).
+- `--watch` says it isn't available yet instead of being silently ignored.
+- The MCP server reports the build version.
+- `feature-tour.md` (51 slides) has a **Try it** step on every feature slide and covers every feature;
+  `docs/FEATURES.md` maps each feature to its slide, its docs page and how it is verified.
+
+---
+
 ## [1.1.0] - 2026-10-16
 
 ### Added

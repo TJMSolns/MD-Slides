@@ -77,12 +77,13 @@ MD-Slides/
 │   └── test/
 ├── cli/                     # CLI entry point — wires domain + infrastructure
 │   └── src/Main.scala
+├── mcp/                     # MCP server (JSON-RPC over stdio) wrapping infrastructure
 ├── templates/               # Slide template definitions (YAML)
-├── themes/                  # Built-in themes (JSON)
-│   ├── light/
-│   └── dark/
+├── themes/                  # Example theme folders (themes/NAME/theme.json)
 ├── features/                # BDD feature specs (plain language)
-├── examples/                # Example presentations
+├── examples/                # feature-tour.md (tutorial, acceptance test, live demo) and hello-world.md
+├── docs/FEATURES.md         # Every feature → tour slide, docs page, how it is verified
+├── docs/agents/             # Work queue and handoff ledger for maintainers
 ├── docs/decisions/          # Architecture and product decision records
 │   ├── adr/                 # Architecture Decision Records
 │   ├── pdr/                 # Product Decision Records
@@ -189,7 +190,11 @@ property("validated body never exceeds 12 lines") {
 2. **Write a failing test first** — example-based in `*Spec.scala`, property-based in `*Properties.scala`.
 3. **Implement the minimum to make it pass.**
 4. **Refactor** once green.
-5. **Update `CHANGELOG.md`** under `[Unreleased]`.
+5. **Show it in the feature tour** (`examples/feature-tour.md`): a slide that uses the feature, with a **Try it** step.
+6. **Add or update its row in `docs/FEATURES.md`**, and the user docs it affects.
+7. **Update `CHANGELOG.md`** under `[Unreleased]`.
+
+A feature isn't done until it is in the tour, the feature list and the docs: the tour is the tutorial, the acceptance test and the live demo.
 
 ### Adding a new slide template
 
@@ -207,7 +212,8 @@ Themes are JSON files — no code change required. To add one as a built-in:
 1. Create `themes/mytheme/theme.json` (see [`docs/decisions/pdr/PDR-007-theme-schema.md`](docs/decisions/pdr/PDR-007-theme-schema.md) for the schema).
 2. Add the theme name constant to `Theme.scala` in `domain/`.
 3. Add the loader case in `cli/Main.scala`.
-4. Add tests to `ThemeSpec.scala`.
+4. Add it to `BuiltInThemeContrastSpec` (every built-in theme must pass WCAG 2.1 AA) and `ThemeSpec.scala`.
+5. Render the feature tour with it and check the result.
 
 ### Building the assembly JAR
 
@@ -238,7 +244,7 @@ java -jar out/cli/assembly.dest/out.jar render examples/hello-world --theme ligh
 
 1. Fork the repo and create a branch from `main`.
 2. Make your changes following the conventions above.
-3. Run `mill __.test` — all tests must pass.
+3. Run `mill __.test` — all tests must pass — and render `examples/feature-tour.md` to check your change in a browser.
 4. Open a PR against `main`. Use the PR template.
 5. A maintainer will review. We aim to respond within a few business days.
 

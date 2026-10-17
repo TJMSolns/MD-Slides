@@ -8,7 +8,7 @@
 
 MD-Slides converts structured Markdown files into self-contained HTML presentations with keyboard, clicker, and touch navigation, speaker view, syntax-highlighted code blocks, and a flexible theme system. Write slides in plain text; present anywhere a browser runs, including a phone or tablet.
 
-Full documentation: https://www.tjm.solutions/mdslides/docs/intro
+**[Live demo](https://www.tjm.solutions/mdslides/demo/)** (try it on your phone) · **[Documentation](https://www.tjm.solutions/mdslides/docs/intro)** · **[Download](https://github.com/TJMSolns/MD-Slides/releases/latest)**
 
 ---
 
@@ -17,7 +17,7 @@ Full documentation: https://www.tjm.solutions/mdslides/docs/intro
 **Requirements:** Java 11 or higher.
 
 ```bash
-# Download the JAR and the feature tour (a self-contained 45-slide demo)
+# Download the JAR and the feature tour (a self-contained 51-slide tutorial)
 curl -L https://github.com/TJMSolns/MD-Slides/releases/latest/download/md-slides.jar -o md-slides.jar
 curl -L https://github.com/TJMSolns/MD-Slides/releases/latest/download/feature-tour.md -o feature-tour.md
 
@@ -28,7 +28,7 @@ xdg-open feature-tour/index.html     # Linux
 start feature-tour/index.html         # Windows
 ```
 
-Press **S** to open speaker view — the feature tour has notes on every slide.
+Press **S** to open speaker view — the feature tour has notes on every slide. Every feature slide has a **Try it** step; the tour is also MD-Slides' acceptance test, and the same deck is the [live demo](https://www.tjm.solutions/mdslides/demo/).
 
 The feature tour exercises every template, content type, image, speaker notes, code block, two-column layout, theme, and validation rule. It's the fastest way to see what MD-Slides can do.
 
@@ -48,7 +48,7 @@ java -jar md-slides.jar render my-talk --theme light
 
 Slides are separated by `---`. Each slide opens with a frontmatter block declaring its template.
 
-```markdown
+````markdown
 ---
 template: title
 ---
@@ -85,7 +85,7 @@ case class Slide(id: SlideId, template: Template, slots: Map[SlotName, SlotConte
 MD-Slides validates slide density so your audience can actually read what you write.
 
 <!-- Speaker notes: These appear only in speaker view — press S during the presentation. -->
-```
+````
 
 Render it:
 
@@ -103,9 +103,10 @@ java -jar md-slides.jar render my-talk --theme dark
 | `F` | Toggle fullscreen |
 | `S` | Open speaker view |
 | `B` | Break mode |
-| `G` | Go to slide number |
+| `G` | Go to a slide (type its number, or tap the slide counter) |
 | `P` / `N` | History back / forward |
 | `T` / `R` | Pause / reset timer |
+| `L` | Save the session log (read with `report`) |
 
 Presentation clickers work out of the box: they send `Page Up`/`Page Down` or arrow keys. Full reference: [Navigation](https://www.tjm.solutions/mdslides/docs/navigation).
 
@@ -155,7 +156,7 @@ MD-Slides reports all constraint violations together — you see every problem i
 
 ## Speaker view
 
-Press `S` during a presentation to open a synchronized speaker window showing your notes, the next slide heading, and an elapsed timer.
+Press `S` during a presentation to open a speaker window showing your notes, the next slide heading, and an elapsed timer. Change slides in either window and the other follows (both windows in the same browser).
 
 Add notes to any slide with an HTML comment:
 
@@ -174,15 +175,21 @@ java -jar md-slides.jar render my-talk --theme light   # default
 java -jar md-slides.jar render my-talk --theme dark
 ```
 
+`corporate` is also built in. All three pass WCAG 2.1 AA contrast.
+
 ### Custom themes
 
-Create a JSON file anywhere and pass its path as the theme:
+A theme is a folder with a `theme.json`, found by name in `./themes` (or in `paths.themesDir` from your global config):
 
-```bash
-java -jar md-slides.jar render my-talk --theme ./themes/mytheme/theme.json
+```
+themes/mytheme/theme.json
 ```
 
-Minimal theme schema:
+```bash
+java -jar md-slides.jar render my-talk --theme mytheme
+```
+
+Every section below is required; copy it and change what you need:
 
 ```json
 {
@@ -225,7 +232,7 @@ Minimal theme schema:
 }
 ```
 
-Per-template background images are also supported — see [`docs/decisions/pdr/PDR-013-directory-based-theme-architecture.md`](docs/decisions/pdr/PDR-013-directory-based-theme-architecture.md).
+Optional: `"background": { "image": "images/bg.png" }`, `"templateBackgrounds": { "section-title": "images/section.png" }`, and `"templateConfig": { "closing": { "footer": "{{title}} · {{date}}" } }`. Image paths are relative to the theme folder. See [Themes](https://www.tjm.solutions/mdslides/docs/themes).
 
 ---
 
@@ -238,7 +245,7 @@ MD-Slides applies configuration in priority order (highest wins):
 3. Global config (`~/.mdslides/config.json` for personal preferences)
 4. Built-in defaults
 
-Example project config:
+Project config (`.mdslides/config.json`):
 
 ```json
 {
@@ -247,20 +254,31 @@ Example project config:
 }
 ```
 
+Global config (`~/.mdslides/config.json`) puts settings under `defaults`:
+
+```json
+{
+  "defaults": { "theme": "light" }
+}
+```
+
+`java -jar md-slides.jar config` shows what is in effect and where it came from.
+
 ---
 
 ## Validation
 
-MD-Slides validates every slide before rendering. Structure errors, density violations, and accessibility problems are all collected and shown together:
+MD-Slides validates every slide before rendering and reports everything in one pass.
+
+**Errors** stop the render: missing required slots, unknown templates, images without alt text, image files that don't exist.
 
 ```
 ✗ Validation failed:
-  - Slide 3: body exceeds max 12 lines (has 17)
-  - Slide 5: heading exceeds max 80 characters (has 94)
-  - Slide 7: image is missing alt text
+  - Slide 3: Structure Error - Required slot 'heading' is missing
+  - Slide 3: Structure Error - Required slot 'body' is missing
 ```
 
-Fix them all at once rather than in a loop of one-error-at-a-time.
+**Warnings** don't: slides over the density guidance (headings over 80 characters, bodies over 12 lines or 150 words), and theme colours below WCAG 2.1 AA contrast.
 
 ---
 

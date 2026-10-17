@@ -2,15 +2,16 @@
 
 ## feature-tour
 
-A 20-slide deck that exercises every MD-Slides feature:
+MD-Slides' tutorial, acceptance test and [live demo](https://www.tjm.solutions/mdslides/demo/): 51 slides that use every feature, each with a **Try it** step. `docs/FEATURES.md` maps every feature to its slide.
 
 - All six templates: `title`, `content`, `section-title`, `two-column`, `closing`, `diagram`
-- Text formatting: bold, italic, inline code, links, strikethrough
-- Lists: ordered, unordered, nested (2 levels)
-- Code blocks with syntax highlighting (Scala, Python, Bash)
-- Images: local SVG files with alt text
-- Speaker notes on every slide — press `S` to open speaker view
-- Themes, configuration, and validation explained in context
+- Text formatting, lists, tables, code (including a long listing), images, Mermaid diagrams
+- Speaker notes on every slide — press `S` for speaker view
+- Touch, clickers, fullscreen, fit-to-screen and `#N` links
+- Goto, history, break mode, timer and the session log (`L`, then `report`)
+- Themes, configuration and validation, explained in context
+
+It is a single file (images are inline), so it renders anywhere.
 
 **Render it:**
 
