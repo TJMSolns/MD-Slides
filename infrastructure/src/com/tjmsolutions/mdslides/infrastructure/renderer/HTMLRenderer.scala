@@ -1163,7 +1163,7 @@ object HTMLRenderer:
         val lines = span.text.split("\n", -1)
         lines.zipWithIndex.foreach { case (line, idx) =>
           if line.nonEmpty then
-            currentParagraph += TextSpan(line, span.bold, span.italic, span.code)
+            currentParagraph += span.copy(text = line)
 
           if idx < lines.length - 1 then
             // Newline encountered - finish current paragraph
@@ -1240,6 +1240,10 @@ object HTMLRenderer:
    * Applies bold, italic, and code formatting.
    */
   private def renderTextSpan(span: TextSpan): Frag =
+    if span.strike && !span.code then tag("del")(renderPlainSpan(span))
+    else renderPlainSpan(span)
+
+  private def renderPlainSpan(span: TextSpan): Frag =
     val text: Frag = span.text
 
     if span.code then

@@ -6,6 +6,7 @@ import com.vladsch.flexmark.util.ast.{Node, NodeVisitor, VisitHandler}
 import com.vladsch.flexmark.ast.*
 import com.vladsch.flexmark.ext.tables.{TableBlock, TableHead, TableBody, TableRow, TableCell}
 import com.vladsch.flexmark.ext.tables.TablesExtension
+import com.vladsch.flexmark.ext.gfm.strikethrough.{Strikethrough, StrikethroughExtension}
 import scala.jdk.CollectionConverters.*
 
 /**
@@ -36,7 +37,7 @@ import scala.jdk.CollectionConverters.*
 object FlexmarkAdapter:
 
   private val parser: Parser = Parser.builder()
-    .extensions(java.util.Arrays.asList(TablesExtension.create()))
+    .extensions(java.util.Arrays.asList(TablesExtension.create(), StrikethroughExtension.create()))
     .build()
 
   /**
@@ -91,6 +92,7 @@ object FlexmarkAdapter:
     var currentBold = false
     var currentItalic = false
     var currentCode = false
+    var currentStrike = false
 
     // Helper to flush current paragraph to content buffer
     def flushParagraph(): Unit =
@@ -106,7 +108,8 @@ object FlexmarkAdapter:
             text.getChars.toString,
             bold = currentBold,
             italic = currentItalic,
-            code = currentCode
+            code = currentCode,
+            strike = currentStrike
           )
           textSpans += span
           currentParagraph += span
@@ -124,6 +127,13 @@ object FlexmarkAdapter:
           currentItalic = true
           n.getChildren.asScala.foreach(visitNode)
           currentItalic = prevItalic
+
+        case strike: Strikethrough =>
+          // Struck-through text: ~~text~~
+          val prevStrike = currentStrike
+          currentStrike = true
+          n.getChildren.asScala.foreach(visitNode)
+          currentStrike = prevStrike
 
         case code: Code =>
           // Inline code: `text`
@@ -283,9 +293,10 @@ object FlexmarkAdapter:
         case Nil => List(span)
         case prev :: rest if prev.bold == span.bold &&
                             prev.italic == span.italic &&
-                            prev.code == span.code =>
+                            prev.code == span.code &&
+                            prev.strike == span.strike =>
           // Same formatting - merge text
-          TextSpan(prev.text + span.text, prev.bold, prev.italic, prev.code) :: rest
+          prev.copy(text = prev.text + span.text) :: rest
         case _ =>
           // Different formatting - append new span
           span :: acc
@@ -327,6 +338,7 @@ object FlexmarkAdapter:
     var currentBold = false
     var currentItalic = false
     var currentCode = false
+    var currentStrike = false
 
     def visitItemNode(n: Node): Unit =
       n match
@@ -335,7 +347,8 @@ object FlexmarkAdapter:
             text.getChars.toString,
             bold = currentBold,
             italic = currentItalic,
-            code = currentCode
+            code = currentCode,
+            strike = currentStrike
           )
           itemSpans += span
 
@@ -350,6 +363,12 @@ object FlexmarkAdapter:
           currentItalic = true
           n.getChildren.asScala.foreach(visitItemNode)
           currentItalic = prevItalic
+
+        case strike: Strikethrough =>
+          val prevStrike = currentStrike
+          currentStrike = true
+          n.getChildren.asScala.foreach(visitItemNode)
+          currentStrike = prevStrike
 
         case code: Code =>
           val span = TextSpan(

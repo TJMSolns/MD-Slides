@@ -187,12 +187,14 @@ object FormattedContent:
  * @param bold True if text is bold (**text** or __text__)
  * @param italic True if text is italic (*text* or _text_)
  * @param code True if text is inline code (`text`)
+ * @param strike True if text is struck through (~~text~~)
  */
 case class TextSpan(
   text: String,
   bold: Boolean,
   italic: Boolean,
-  code: Boolean
+  code: Boolean,
+  strike: Boolean = false
 )
 
 /**
