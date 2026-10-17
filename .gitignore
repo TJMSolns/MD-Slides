@@ -32,3 +32,4 @@ __pycache__/
 # Rendered example output
 examples/*/
 !examples/images/
+docs/agents/.work-queue.lock
