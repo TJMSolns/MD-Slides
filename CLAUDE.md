@@ -117,20 +117,33 @@ MUnit + ScalaCheck (property-based). 700+ tests across all modules.
 
 ## Releasing
 
-1. `mill __.test` green; `CHANGELOG.md` and `mdSlidesVersion` in `build.sc` updated; commit and push `main`
+A release is done only when **every public claim reachable from the product** (site pages, docs, README, CLI help,
+release notes, the feature tour) has been checked against the **released artifacts**. Never declare done from a
+review of the changed parts only.
+
+1. `mill __.test` green. `CHANGELOG.md`, `mdSlidesVersion` (build.sc), `docs/FEATURES.md` and the feature tour
+   (`examples/feature-tour.md`: every feature has a slide with a **Try it** step) are up to date. Commit, push `main`,
+   CI green.
 2. `mill cli.assembly mcp.assembly`
-3. Create the release on the pushed commit with **all three assets**: `md-slides.jar`, `mdslides-mcp.jar`
-   and `examples/feature-tour.md` (the docs' quick start downloads `releases/latest/download/feature-tour.md`):
+3. Create the release on the pushed commit with **all three assets**: `md-slides.jar`, `mdslides-mcp.jar`,
+   `examples/feature-tour.md`:
    ```bash
    cp out/cli/assembly.dest/out.jar /tmp/md-slides.jar
    cp out/mcp/assembly.dest/out.jar /tmp/mdslides-mcp.jar
    cp examples/feature-tour.md /tmp/feature-tour.md
    gh release create vX.Y.Z /tmp/md-slides.jar /tmp/mdslides-mcp.jar /tmp/feature-tour.md --target main --notes-file <changelog section>
    ```
-4. **Verify immediately:** `gh release view vX.Y.Z --json assets --jq '.assets[] | "\(.name) \(.digest)"'` —
-   jar digests match the local builds; a downloaded `md-slides.jar --version` prints vX.Y.Z
-5. Update the site docs for any user-visible change: `~/Cloud/GitHub/tjm-solutions-site/` →
-   `mdslides-docs/`, `src/pages/mdslides.tsx`, `src/pages/projects.tsx`
+4. **Verify the release:** asset digests match the local builds; a *downloaded* `md-slides.jar --version` prints vX.Y.Z.
+5. **Live demo and browser check** (in `~/Cloud/GitHub/tjm-solutions-site`):
+   - `scripts/build-mdslides-demo.sh vX.Y.Z` renders the released tour into `static/mdslides/demo/`
+   - serve the built site and run `node scripts/verify-mdslides-demo.mjs <url>/mdslides/demo <downloaded jar>`:
+     every check must pass (navigation, speaker sync, goto, history, break, tokens, fit at phone and laptop
+     sizes, session log + `report`, PDF pages, WCAG 2.1 AA on every slide)
+6. **Docs:** every command and example in the site docs and README run against the downloaded jar in a clean
+   environment (`java -Duser.home=<empty dir>` — Java ignores `$HOME`). Update the docs for anything user-visible:
+   `mdslides-docs/`, `src/pages/mdslides.tsx`, `src/pages/projects.tsx`.
+7. Deploy the site; rerun the browser check against https://www.tjm.solutions/mdslides/demo.
+8. **Phone:** walk through the tour's Try it steps on a real phone before announcing the release.
 
 ## Harness Rules — Non-Negotiable
 
