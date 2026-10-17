@@ -966,16 +966,16 @@ object HTMLRenderer:
       // Header section (top-justified)
       div(cls := "title-slide-header")(
         slide.getSlot(SlotName.Title).map(title =>
-          h1(cls := "slide-title", style := s"color: ${colors("heading")}")(renderFormattedText(title, preRenderedDiagrams))
+          h1(cls := "slide-title", style := s"color: ${colors("heading")}")(renderInlineText(title))
         ),
         slide.getSlot(SlotName.Subtitle).map(subtitle =>
-          h2(cls := "slide-subtitle", style := s"color: ${colors("subtitle")}")(renderFormattedText(subtitle, preRenderedDiagrams))
+          h2(cls := "slide-subtitle", style := s"color: ${colors("subtitle")}")(renderInlineText(subtitle))
         )
       ),
       // Footer section (bottom-justified)
       slide.getSlot(SlotName.Author).map(author =>
         div(cls := "title-slide-footer")(
-          p(cls := "slide-author", style := s"color: ${colors("author")}")(renderFormattedText(author, preRenderedDiagrams))
+          p(cls := "slide-author", style := s"color: ${colors("author")}")(renderInlineText(author))
         )
       )
     )
@@ -986,7 +986,7 @@ object HTMLRenderer:
   private def renderContentSlide(slide: Slide, preRenderedDiagrams: Map[String, String], colors: Map[String, String]): Frag =
     div(cls := "content-slide")(
       slide.getSlot(SlotName.Heading).map(heading =>
-        h2(cls := "slide-heading", style := s"color: ${colors("heading")}")(renderFormattedText(heading, preRenderedDiagrams))
+        h2(cls := "slide-heading", style := s"color: ${colors("heading")}")(renderInlineText(heading))
       ),
       slide.getSlot(SlotName.Body).map(body =>
         div(cls := "slide-body", style := s"color: ${colors("body")}")(
@@ -1006,7 +1006,7 @@ object HTMLRenderer:
   private def renderDiagramSlide(slide: Slide, preRenderedDiagrams: Map[String, String], colors: Map[String, String]): Frag =
     div(cls := "diagram-slide")(
       slide.getSlot(SlotName.Heading).map(heading =>
-        h2(cls := "slide-heading", style := s"color: ${colors("heading")}")(renderFormattedText(heading, preRenderedDiagrams))
+        h2(cls := "slide-heading", style := s"color: ${colors("heading")}")(renderInlineText(heading))
       ),
       // Body contains Mermaid diagram(s)
       slide.getSlot(SlotName.Body).map(body =>
@@ -1016,7 +1016,7 @@ object HTMLRenderer:
       ),
       // Optional caption below diagram (Scenario 18)
       slide.getSlot(SlotName.Caption).map(caption =>
-        p(cls := "diagram-caption")(renderFormattedText(caption, preRenderedDiagrams))
+        p(cls := "diagram-caption")(renderInlineText(caption))
       )
     )
 
@@ -1031,7 +1031,7 @@ object HTMLRenderer:
   private def renderClosingSlide(slide: Slide, preRenderedDiagrams: Map[String, String], colors: Map[String, String]): Frag =
     div(cls := "closing-slide")(
       slide.getSlot(SlotName.Heading).map(heading =>
-        h1(cls := "closing-heading", style := s"color: ${colors("heading")}")(renderFormattedText(heading, preRenderedDiagrams))
+        h1(cls := "closing-heading", style := s"color: ${colors("heading")}")(renderInlineText(heading))
       ),
       slide.getSlot(SlotName.Body).map(body =>
         div(cls := "slide-body", style := s"color: ${colors("body")}")(
@@ -1069,7 +1069,7 @@ object HTMLRenderer:
         div(cls := "two-column-container", style := s"grid-template-columns: $leftWidth $rightWidth")(
           tag("section")(cls := "column column-left", attr("aria-label") := "Section heading", style := s"color: ${leftColors("heading")}")(
             slide.getSlot(SlotName.Heading).map(heading =>
-              h1(cls := "section-title-heading", style := s"color: ${leftColors("heading")}")(renderFormattedText(heading, preRenderedDiagrams))
+              h1(cls := "section-title-heading", style := s"color: ${leftColors("heading")}")(renderInlineText(heading))
             ).getOrElse(div())
           ),
           tag("section")(cls := "column column-right", attr("aria-label") := "Section description", style := s"color: ${rightColors("body")}")(
@@ -1083,7 +1083,7 @@ object HTMLRenderer:
       // Standard centered layout
       div(cls := "section-title-slide")(
         slide.getSlot(SlotName.Heading).map(heading =>
-          h1(cls := "section-title-heading", style := s"color: ${colors("heading")}")(renderFormattedText(heading, preRenderedDiagrams))
+          h1(cls := "section-title-heading", style := s"color: ${colors("heading")}")(renderInlineText(heading))
         ),
         slide.getSlot(SlotName.Body).map(body =>
           p(cls := "section-subtitle", style := s"color: ${colors("body")}")(renderFormattedText(body, preRenderedDiagrams))
@@ -1107,7 +1107,7 @@ object HTMLRenderer:
     div(cls := "two-column-slide", attr("role") := "region", attr("aria-label") := "Two-column slide")(
       // Render title if present in frontmatter
       slide.getSlot(SlotName.Title).map(title =>
-        h2(cls := "slide-heading", style := s"color: ${colors("heading")}")(renderFormattedText(title, preRenderedDiagrams))
+        h2(cls := "slide-heading", style := s"color: ${colors("heading")}")(renderInlineText(title))
       ),
       // Two-column container
       div(cls := "two-column-container")(
@@ -1132,6 +1132,18 @@ object HTMLRenderer:
    * @param text Plain text or markdown text
    * @return HTML fragments with formatting
    */
+  /**
+   * Inline text for headings, captions and other elements that cannot contain paragraphs:
+   * a single paragraph is rendered without its <p>; anything else falls back to block rendering.
+   */
+  private def renderInlineText(text: String): Frag =
+    val formatted = FlexmarkAdapter.parseInlineFormatting(text)
+    formatted.content match
+      case List(ParagraphElement(spans)) =>
+        val linkMap = formatted.links.map(link => link.text -> link.url).toMap
+        frag(spans.map(span => renderTextSpanWithLinks(span, linkMap)))
+      case _ => renderFormattedText(text)
+
   private def renderFormattedText(text: String, preRenderedDiagrams: Map[String, String] = Map.empty): Frag =
     val formatted = FlexmarkAdapter.parseInlineFormatting(text)
     renderFormattedContentWithParagraphs(formatted, preRenderedDiagrams)
@@ -1324,7 +1336,7 @@ object HTMLRenderer:
     preRenderedDiagrams: Map[String, String] = Map.empty
   ): Frag =
     preRenderedDiagrams.get(diagram.source) match
-      case Some(svg) =>
+      case Some(svg) if svg.trim.nonEmpty =>
         // Use pre-rendered SVG (offline support)
         div(
           cls := "mermaid-diagram",
@@ -1332,15 +1344,16 @@ object HTMLRenderer:
           attr("data-diagram-type") := diagram.diagramType,
           raw(svg)
         )
-      case None =>
-        // Fallback: show diagram source with warning
+      case _ =>
+        // Not pre-rendered (mermaid-cli missing or failed): show the source with a notice
         div(
           cls := "mermaid-fallback",
+          style := "background: #f5f5f5; color: #1f1f20; padding: 1em; border-radius: 4px;",
           diagram.altText.map(alt => attr("aria-label") := alt),
-          raw(s"""<pre style="background: #f5f5f5; padding: 1em; border-radius: 4px; overflow: auto;"><code>${diagram.source}</code></pre>
-                 |<p style="color: #d32f2f; font-size: 0.9em; margin-top: 0.5em;">
-                 |  ⚠ Diagram not rendered. Install mermaid-cli: npm install -g @mermaid-js/mermaid-cli
-                 |</p>""".stripMargin)
+          pre(style := "margin: 0; overflow: auto;")(code(diagram.source)),
+          p(style := "margin: 0.5em 0 0; font-size: 0.9em;")(
+            "Diagram not rendered: install mermaid-cli (npm install -g @mermaid-js/mermaid-cli) and render again."
+          )
         )
 
   /**
