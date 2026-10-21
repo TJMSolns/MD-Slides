@@ -25,6 +25,11 @@ Last groomed: 2026-10-17 (GL-033, org `/groom-all`). Order: the two verifier-pen
 - without mermaid-cli, render warns the diagram failed and then prints "Pre-rendered 1 diagram(s)".
 
 Queued, not diagnosed. | Claude | Queued | — |
+| MS-032 | **P3 BUG [found 2026-10-21 building the short-course deck with v1.1.1]** Two rendering defects:
+- **Bold inside a table cell.** `| the **highest** of the inputs |` renders as "thehighestof the inputs", losing the spaces around the bold text. A cell that is only `**Buy**` renders as plain text, without bold.
+- **Quotation marks in a diagram caption.** `caption: Part of a typed concept graph for the word "chocolate"` renders without the closing quotation mark.
+
+The deck currently avoids both. Queued, not diagnosed. | Claude | Queued | — |
 | MS-027 | `--watch` live reload: re-render on save and reload the browser on the current slide (parsed today but not implemented; the CLI now says so). Needs design: polling vs file watcher, and how the page reloads without losing its place (the `#N` deep link helps). | Claude | Queued | — |
 | MS-029 [PROPOSED] | Close the verification gaps MS-028 left open: run the live demo's Try it steps in Firefox, Safari (macOS or iOS) and Edge, and run the released jar on a Java 11 runtime (the docs say "Java 11 or higher"; the bytecode targets 11, but no Java 11 run was made). Record results in FEATURES.md; fix or correct the docs for anything that fails. Rationale: these are public claims not yet checked against the release (CLAUDE.md § Releasing). | Claude (Tony for Safari, if no Mac) | Queued | — |
 
