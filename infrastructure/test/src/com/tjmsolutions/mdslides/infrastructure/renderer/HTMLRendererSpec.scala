@@ -297,9 +297,9 @@ class HTMLRendererSpec extends munit.FunSuite:
 
     val html = HTMLRenderer.renderDeck(deck)
 
-    // Should include inline style with per-slide background (path rewritten to images/ by rewriteImageUrl)
+    // Per-slide background points where the copier puts it: images/ + the relative path (MS-030)
     assert(html.contains("background-image"))
-    assert(html.contains("images/custom.png"))
+    assert(html.contains("url('images/backgrounds/custom.png')"))
   }
 
   test("render slide using template background from theme") {
@@ -418,9 +418,9 @@ class HTMLRendererSpec extends munit.FunSuite:
 
     val html = HTMLRenderer.renderDeck(deck, theme)
 
-    // Should use per-slide background (path rewritten to images/ by rewriteImageUrl), not template background
-    assert(html.contains("images/override.png"))
-    assert(!html.contains("images/content-bg.png"))
+    // Should use per-slide background (images/ + the relative path, MS-030), not template background
+    assert(html.contains("images/backgrounds/override.png"))
+    assert(!html.contains("content-bg.png"))
   }
 
   test("slide without background falls back to theme default") {

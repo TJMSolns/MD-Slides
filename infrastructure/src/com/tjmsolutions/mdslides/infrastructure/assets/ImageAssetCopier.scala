@@ -86,6 +86,24 @@ object ImageAssetCopier:
           Left(s"Invalid path: $url (${e.getMessage})")
 
   /**
+   * Where a local image lands, relative to the folder it is copied into (MS-030).
+   *
+   * The copier and the renderer both use this, so the `src` written into the HTML is always the file that was
+   * copied. A relative path inside the deck folder keeps its structure, normalized (`./images/pic.png` becomes
+   * `images/pic.png`), so two images with the same file name in different folders stay distinct. A path that
+   * would escape the folder (`../shared/logo.png`, or an absolute path) keeps only its file name.
+   *
+   * @param url A local image path as written in the markdown
+   * @return Forward-slash relative path inside the destination folder
+   */
+  def outputPath(url: String): String =
+    val path = Paths.get(url.replace('\\', '/')).normalize()
+    val names = (0 until path.getNameCount).map(i => path.getName(i).toString).toList
+    val escapes = path.isAbsolute || url.matches("^[A-Za-z]:[\\\\/].*") || names.isEmpty || names.headOption.contains("..")
+    if escapes then Paths.get(url.replace('\\', '/')).getFileName.toString
+    else names.mkString("/")
+
+  /**
    * Copy images to output directory.
    *
    * - Detects local vs external URLs
@@ -119,8 +137,8 @@ object ImageAssetCopier:
           else
             Left(s"Image file does not exist: $imagePath (expected at: $sourcePath)")
 
-          // Calculate destination path (preserve relative structure)
-          relativePath = Paths.get(imagePath)
+          // Calculate destination path (MS-030: the same path the renderer writes into the HTML)
+          relativePath = outputPath(imagePath)
           destPath = outputDir.resolve(relativePath)
 
           // Create parent directories if needed
@@ -144,7 +162,7 @@ object ImageAssetCopier:
 
         yield CopiedImage(
           originalPath = imagePath,
-          destinationPath = relativePath.toString,
+          destinationPath = relativePath,
           sizeBytes = sizeBytes
         )
       }

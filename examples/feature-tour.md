@@ -204,7 +204,7 @@ Every slide opens with a frontmatter block between `---` markers. Supported keys
 | Key | Required | Description |
 |-----|----------|-------------|
 | `template:` | yes | Slide type: `title` `content` `section-title` `two-column` `diagram` `closing` |
-| `header:` | no | Top bar text — tokens: `{{pageNumber}}` `{{totalPages}}` `{{timer}}` `{{date}}` |
+| `header:` | no | Top bar text — tokens: `{{pageNumber}}` `{{totalPages}}` `{{timer}}` `{{title}}` `{{date}}` |
 | `footer:` | no | Bottom bar text — same tokens as `header:` |
 | `vertical-align:` | no | Content position: `top` `center` (default) `bottom` |
 | `background:` | no | Per-slide background image path (overrides theme for this slide only) |
@@ -402,20 +402,20 @@ template: two-column
 | Template | Max body | Used for |
 |----------|----------|----------|
 | `title` | — | Opening slide |
-| `content` | 12 ln / 150 w | Most slides |
+| `content` | 12 ln / 150 w | **Most** slides |
 | `two-column` | 10 ln / 75 w | Comparisons |
 | `diagram` | — | Mermaid charts |
 | `closing` | 12 ln / 150 w | Final slide |
 ```
 
-Column alignment: `|:---:|` center · `|---:|` right
+Column alignment: `|:---:|` center · `|---:|` right. Bold, `code` and links work inside cells.
 
 ---column---
 
 | Template | Max body | Used for |
 |----------|----------|----------|
 | `title` | — | Opening slide |
-| `content` | 12 ln / 150 w | Most slides |
+| `content` | 12 ln / 150 w | **Most** slides |
 | `two-column` | 10 ln / 75 w | Comparisons |
 | `diagram` | — | Mermaid charts |
 | `closing` | 12 ln / 150 w | Final slide |
@@ -1015,9 +1015,11 @@ template: content
 ## Validation output: everything at once
 
 ```
-✗ Validation failed:
+✗ Validation failed with 4 problem(s):
   - Slide 3: Structure Error - Required slot 'heading' is missing
   - Slide 3: Structure Error - Required slot 'body' is missing
+  - Slide 4: Unknown template 'bogus'. Valid templates: title, content, diagram, closing, section-title, two-column
+  - Slide 5: image file 'images/lamp.png' does not exist (looked for images/lamp.png)
 ```
 
 ```
@@ -1026,7 +1028,7 @@ template: content
     recommended line limit (actual: 17, guidance: 12 lines)
 ```
 
-Validation reports every problem in one pass, so you fix them all at once. An image without alt text is reported by name: `![what it shows](photo.png)`.
+Validation reports every problem on every slide in one pass, before anything is written, so you fix them all at once. An image without alt text is reported by name: `![what it shows](photo.png)`.
 
 <!-- Speaker notes: The domain model uses Either[NonEmptyList[ValidationError], SlideDeck], so errors accumulate rather than stopping at the first one. -->
 

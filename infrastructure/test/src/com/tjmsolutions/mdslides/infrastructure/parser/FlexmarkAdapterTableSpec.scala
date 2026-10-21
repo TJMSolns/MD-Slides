@@ -60,17 +60,20 @@ class FlexmarkAdapterTableSpec extends FunSuite:
     assertEquals(tables.head.headers, List("Key"))
     assertEquals(tables.head.rows, List(List("alpha"), List("beta")))
 
-  test("BUG-003 / AC3 — bold markers stripped from cell text"):
+  // BUG-003 AC3 originally stripped inline markdown from cells, leaving plain text. MS-032 reverses that: the
+  // feature tour promises bold, code and links inside cells, and stripping also lost the spaces around them
+  // ("the **highest** of" became "thehighestof"). Cells now keep their inline markdown for the renderer.
+  test("MS-032 — a cell keeps its inline markdown, spaces included"):
     val markdown = """|Phase|Status|
                       ||-------|--------|
-                      ||**Discovery**|Done|""".stripMargin('|')
+                      ||**Discovery**|the **highest** of the inputs|""".stripMargin('|')
 
     val result = FlexmarkAdapter.parseInlineFormatting(markdown)
     val tables = result.content.collect { case TableElement(t) => t }
 
     assertEquals(tables.length, 1)
-    assertEquals(tables.head.rows(0)(0), "Discovery",
-      "bold markers must be stripped; cell text must be plain")
+    assertEquals(tables.head.rows(0)(0), "**Discovery**")
+    assertEquals(tables.head.rows(0)(1), "the **highest** of the inputs")
 
   // ── Rule 2: Column Alignment ─────────────────────────────────────────────────
 

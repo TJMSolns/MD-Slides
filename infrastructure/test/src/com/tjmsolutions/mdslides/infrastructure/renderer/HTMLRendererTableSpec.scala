@@ -141,3 +141,29 @@ class HTMLRendererTableSpec extends munit.FunSuite:
     assert(html.contains("<table"), "Expected <table>")
     assert(html.contains("<thead"), "Expected <thead>")
     assert(html.contains("Col1"), "Expected header 'Col1'")
+
+  // ── MS-032: inline formatting inside cells ────────────────────────────────────
+
+  test("MS-032 — bold inside a cell renders bold and keeps the spaces around it"):
+    val html = HTMLRenderer.renderDeck(slideWithBody(
+      """|Label|Combined by|
+         ||---|---|
+         ||Sensitivity|the **highest** of the inputs|""".stripMargin('|')))
+    assert(html.contains("the <strong>highest</strong> of the inputs"), "bold cell text must keep its spaces")
+
+  test("MS-032 — a cell that is only bold renders bold"):
+    val html = HTMLRenderer.renderDeck(slideWithBody(
+      """|Component|Decision|
+         ||---|---|
+         ||Retrieval engines|**Buy**|""".stripMargin('|')))
+    assert(html.contains("<strong>Buy</strong>"), "a bold-only cell must render bold")
+
+  test("MS-032 — inline code and links render inside cells and headers"):
+    val html = HTMLRenderer.renderDeck(slideWithBody(
+      """|`template:`|Docs|
+         ||---|---|
+         ||`content`|[guide](https://example.com/guide)|""".stripMargin('|')))
+    assert(html.contains("<code>template:</code>"), "inline code in a header cell")
+    assert(html.contains("<code>content</code>"), "inline code in a body cell")
+    assert(html.contains("""href="https://example.com/guide""""), "link in a body cell")
+

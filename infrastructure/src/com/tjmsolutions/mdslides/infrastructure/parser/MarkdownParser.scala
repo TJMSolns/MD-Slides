@@ -58,18 +58,31 @@ object MarkdownParser:
     if rawSlides.isEmpty then
       return Left("No slides found in markdown (use --- to separate slides)")
 
-    // Parse each slide
-    val parsedSlides = rawSlides.zipWithIndex.map { case (rawSlide, index) =>
-      parseSlide(rawSlide, index + 1)
-    }
+    // Parse every slide and report every problem, not just the first (site WQ-077)
+    val (errors, slides) = parseEach(rawSlides)
+    if errors.nonEmpty then Left(errors.mkString("\n"))
+    else
+      NonEmptyList.fromList(slides) match
+        case None => Left("No valid slides found")
+        case Some(nel) => Right(SlideDeck(nel))
 
-    // Collect errors or build deck
-    parsedSlides.toList.sequence match
-      case Left(error) => Left(error)
-      case Right(slides) =>
-        NonEmptyList.fromList(slides) match
-          case None => Left("No valid slides found")
-          case Some(nel) => Right(SlideDeck(nel))
+  /**
+   * Parse every slide, collecting the errors of the slides that fail and the slides that parse.
+   *
+   * Used by DeckCheck so a broken slide doesn't hide the problems on any other slide.
+   *
+   * @return (errors in slide order, parsed slides, number of slides in the source)
+   */
+  def parseCollecting(markdown: String): (List[String], List[Slide], Int) =
+    val rawSlides = splitSlides(markdown)
+    if rawSlides.isEmpty then (List("No slides found in markdown (use --- to separate slides)"), Nil, 0)
+    else
+      val (errors, slides) = parseEach(rawSlides)
+      (errors, slides, rawSlides.length)
+
+  private def parseEach(rawSlides: List[String]): (List[String], List[Slide]) =
+    val results = rawSlides.zipWithIndex.map { case (rawSlide, index) => parseSlide(rawSlide, index + 1) }
+    (results.collect { case Left(error) => error }, results.collect { case Right(slide) => slide })
 
   /**
    * Compute the source line number (1-based) of each slide's opening --- delimiter.
@@ -149,10 +162,12 @@ object MarkdownParser:
       case _ => return Left(s"Slide $slideNumber: Unknown template '$templateName'")
 
     // Images need alt text (WCAG 1.1.1); report them rather than dropping them at render time
-    val missingAlt = baseSlots.values.flatMap(FlexmarkAdapter.imagesMissingAlt).headOption
-    if missingAlt.isDefined then
-      val url = missingAlt.get
-      return Left(s"Slide $slideNumber: image '$url' has no alt text (WCAG 1.1.1). Describe it: ![what the image shows]($url)")
+    // Report every image on the slide that lacks alt text, not just the first (site WQ-077)
+    val missingAlt = baseSlots.values.toList.flatMap(FlexmarkAdapter.imagesMissingAlt).distinct
+    if missingAlt.nonEmpty then
+      return Left(missingAlt.map(url =>
+        s"Slide $slideNumber: image '$url' has no alt text (WCAG 1.1.1). Describe it: ![what the image shows]($url)"
+      ).mkString("\n"))
 
     // Add optional frontmatter title override to slots (v3.0.0) — this is template
     // content (SlotName.Title), not out-of-band metadata.
@@ -221,6 +236,11 @@ object MarkdownParser:
    * - `key: value` → Map("key" -> "value")
    * - `key:\n  - item1\n  - item2` → Map("key" -> "item1\nitem2")
    */
+  /** MS-032: strip surrounding quotation marks only when the whole value is wrapped in them. */
+  private def unquote(value: String): String =
+    if value.length >= 2 && value.startsWith("\"") && value.endsWith("\"") then value.substring(1, value.length - 1)
+    else value
+
   private def parseFrontmatterLines(lines: List[String]): Map[String, String] =
     val result = Map.newBuilder[String, String]
     var currentKey: Option[String] = None
@@ -231,7 +251,7 @@ object MarkdownParser:
 
       if trimmed.startsWith("- ") then
         // Array item
-        val item = trimmed.drop(2).trim.stripPrefix("\"").stripSuffix("\"")
+        val item = unquote(trimmed.drop(2).trim)
         currentArrayItems += item
       else if trimmed.contains(":") then
         // Finish previous key if it was an array
@@ -247,7 +267,7 @@ object MarkdownParser:
         if parts.length == 2 then
           val key = parts(0).trim
           val rawValue = parts(1).trim
-          val value = rawValue.stripPrefix("\"").stripSuffix("\"")
+          val value = unquote(rawValue)
 
           // Check if this is an explicit empty string ("") or truly empty (array follows)
           if rawValue.startsWith("\"") && rawValue.endsWith("\"") then
@@ -380,7 +400,7 @@ object MarkdownParser:
 
     // Split content by ---column--- delimiter
     TwoColumnSlide.parseColumns(content) match
-      case Left(error) => Left(error.toString)
+      case Left(error) => Left(error.displayMessage)
       case Right((leftColumn, rightColumn)) =>
         Right(Map(
           SlotName.LeftColumn -> leftColumn,

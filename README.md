@@ -268,14 +268,16 @@ Global config (`~/.mdslides/config.json`) puts settings under `defaults`:
 
 ## Validation
 
-MD-Slides validates every slide before rendering and reports everything in one pass.
+MD-Slides validates every slide before it writes anything and reports every problem, across every slide, in one pass.
 
 **Errors** stop the render: missing required slots, unknown templates, images without alt text, image files that don't exist.
 
 ```
-✗ Validation failed:
+✗ Validation failed with 4 problem(s):
   - Slide 3: Structure Error - Required slot 'heading' is missing
   - Slide 3: Structure Error - Required slot 'body' is missing
+  - Slide 4: Unknown template 'bogus'. Valid templates: title, content, diagram, closing, section-title, two-column
+  - Slide 5: image file 'images/lamp.png' does not exist (looked for images/lamp.png)
 ```
 
 **Warnings** don't: slides over the density guidance (headings over 80 characters, bodies over 12 lines or 150 words), and theme colours below WCAG 2.1 AA contrast.

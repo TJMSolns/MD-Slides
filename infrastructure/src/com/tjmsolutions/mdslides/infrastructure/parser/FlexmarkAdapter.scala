@@ -114,6 +114,12 @@ object FlexmarkAdapter:
           textSpans += span
           currentParagraph += span
 
+        case html: com.vladsch.flexmark.ast.HtmlInline =>
+          // MS-031: inline HTML (e.g. "<special>") is shown as literal text, never dropped or passed through
+          val span = TextSpan(html.getChars.toString, bold = currentBold, italic = currentItalic, code = false, strike = currentStrike)
+          textSpans += span
+          currentParagraph += span
+
         case strong: StrongEmphasis =>
           // Bold text: **text** or __text__
           val prevBold = currentBold
@@ -352,6 +358,10 @@ object FlexmarkAdapter:
           )
           itemSpans += span
 
+        case html: com.vladsch.flexmark.ast.HtmlInline =>
+          // MS-031: inline HTML shown as literal text
+          itemSpans += TextSpan(html.getChars.toString, bold = currentBold, italic = currentItalic, code = false, strike = currentStrike)
+
         case strong: StrongEmphasis =>
           val prevBold = currentBold
           currentBold = true
@@ -448,19 +458,11 @@ object FlexmarkAdapter:
 
     (headersList.toList, rowsList.toList, alignmentList.toList)
 
+  /** MS-032: a cell keeps its inline markdown (bold, code, links, spaces); the renderer formats it. */
   private def extractCellText(cell: Node): String =
-    val parts = scala.collection.mutable.ListBuffer.empty[String]
-    
-    def extract(node: Node): Unit =
-      if (node.isInstanceOf[Text]) {
-        val text = node.asInstanceOf[Text].getChars.toString.trim()
-        if text.nonEmpty then parts += text
-      } else {
-        node.getChildren.asScala.foreach(extract)
-      }
-    
-    cell.getChildren.asScala.foreach(extract)
-    parts.mkString("").trim()
+    cell match
+      case tc: TableCell => tc.getText.toString.trim
+      case other => other.getChars.toString.trim
 
   private def extractCellAlignment(cell: Node): String =
     try {

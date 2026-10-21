@@ -5,6 +5,37 @@ All notable changes to MD-Slides will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2026-10-21
+
+Independent reviews of the 1.1.1 release, and building a 100-slide course deck with it, found the defects below.
+Every one is fixed with a test that failed first.
+
+### Fixed
+- **Images with a relative path rendered broken.** `![alt](./images/x.png)`, the documented example, was copied to
+  `images/images/x.png` while the page pointed at `images/x.png`. The copier and the renderer now share one path
+  rule. A relative path keeps its folders under `images/`, so two images with the same file name in different
+  folders no longer collide. An image outside the deck folder (`../shared/logo.png`, or an absolute path) is
+  copied by its file name. Per-slide background images follow the same rule.
+- **Validation now reports every problem in one pass, before anything is written,** as the docs promise:
+  - problems on every slide, not just the first broken one;
+  - every image without alt text on a slide;
+  - density warnings, even when another slide has an error;
+  - image files that don't exist, previously reported only after "Validation passed".
+
+  A failed render no longer leaves an empty output folder. The MCP `validate_deck` tool runs the same checks.
+- **Tables:** bold, code and links render inside cells and headers. Cell text used to be flattened, which also lost
+  the spaces around bold text (`the **highest** of` became "thehighestof").
+- **Frontmatter values** that end (or start) with a quoted word keep their quotation marks. Only a value wrapped in
+  quotes as a whole is unquoted.
+- **Diagram captions** show angle-bracketed text instead of dropping it, and inline HTML in slide text is shown
+  as text.
+- **Diagrams without mermaid-cli** are no longer counted as "Pre-rendered".
+- **Messages:**
+  - the `config` command suggested `echo '{{}}'`, which isn't valid JSON; it now suggests `echo '{}'`;
+  - a two-column slide with the wrong number of `---column---` lines is reported in plain words.
+- **Feature tour:** the frontmatter table lists the `{{title}}` token, and the tables slide shows bold and code
+  inside cells.
+
 ## [1.1.1] - 2026-10-17
 
 A verification pass of every documented feature against the released jar found features that did not work as

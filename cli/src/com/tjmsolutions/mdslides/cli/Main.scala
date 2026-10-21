@@ -9,6 +9,7 @@ import com.tjmsolutions.mdslides.infrastructure.rendering.SpeakerViewRenderer
 import com.tjmsolutions.mdslides.infrastructure.diagram.MermaidRenderer
 import com.tjmsolutions.mdslides.infrastructure.theme.{ThemeJsonAdapter, ThemeLoader}
 import com.tjmsolutions.mdslides.infrastructure.assets.{ImageAssetCopier, CopiedImage}
+import com.tjmsolutions.mdslides.infrastructure.validation.DeckCheck
 import com.tjmsolutions.mdslides.infrastructure.accessibility.{AccessibilityService, AccessibilityReportWriter}
 import com.tjmsolutions.mdslides.infrastructure.config.ConfigLoader
 
@@ -258,9 +259,6 @@ object Main extends IOApp:
               // Explicit form: use provided output directory
               IO.pure(cliArgs.outputDir.get)
 
-      // Create output directory
-      _ <- PathResolver.ensureOutputDirExists(outputDir)
-
       // Load theme (use merged config theme name, but global config for theme directory)
       _ <- IO.println(s"Loading theme: ${config.theme}")
       theme <- loadTheme(config.theme, globalConfig)
@@ -269,36 +267,27 @@ object Main extends IOApp:
       _ <- IO.println(s"Reading markdown from: $inputPath")
       markdown <- IO.blocking(Files.readString(inputPath))
 
-      // Parse markdown
-      _ <- IO.println("Parsing markdown...")
-      deck <- MarkdownParser.parse(markdown) match
-        case Right(deck) =>
-          IO.println(s"✓ Parsed ${deck.slideCount} slide(s)").as(deck)
-        case Left(error) =>
-          IO.println(s"✗ Parse error: $error") *> IO.raiseError(new RuntimeException(error))
+      // Check everything before writing anything, and report every problem together (site WQ-077)
+      _ <- IO.println("Parsing and validating...")
+      sourceDirForImages = Option(inputPath.getParent).getOrElse(Paths.get("."))
+      check = DeckCheck.run(markdown, if cliArgs.copyImages then Some(sourceDirForImages) else None)
+      _ <- IO.println(s"✓ Parsed ${check.slideCount} slide(s)")
+      warningList = check.warnings.mkString("\n  - ")
+      validatedDeck <- (check.deck, check.errors) match
+        case (Some(deck), Nil) =>
+          IO.println(
+            if check.warnings.isEmpty then "✓ Validation passed"
+            else s"✓ Validation passed with ${check.warnings.length} warning(s):\n  - $warningList"
+          ).as(deck)
+        case (_, errors) =>
+          val warningsPart =
+            if check.warnings.isEmpty then ""
+            else s"\nand ${check.warnings.length} warning(s):\n  - $warningList"
+          IO.println(s"✗ Validation failed with ${errors.length} problem(s):\n  - ${errors.mkString("\n  - ")}$warningsPart") *>
+            IO.raiseError(new RuntimeException("Validation failed"))
 
-      // Validate deck (PDR-001: separate warnings from errors)
-      _ <- IO.println("Validating slide deck...")
-      validatedDeck <- SlideDeck.validated(deck.slides) match
-        case Right(validDeck) =>
-          IO.println("✓ Validation passed").as(validDeck)
-        case Left(allIssues) =>
-          // Separate blocking errors from non-blocking warnings
-          val (warnings, blockingErrors) = allIssues.toList.partition {
-            case ValidationError.DensityWarning(_, _, _, _) => true
-            case _ => false
-          }
-
-          // If only warnings (no blocking errors), continue with warnings
-          if blockingErrors.isEmpty then
-            val warningMessages = warnings.map(_.displayMessage).mkString("\n  - ")
-            IO.println(s"✓ Validation passed with ${warnings.length} warning(s):\n  - $warningMessages")
-              .as(SlideDeck(deck.slides))
-          else
-            // Blocking errors present - fail rendering
-            val errorMessages = blockingErrors.map(_.displayMessage).mkString("\n  - ")
-            IO.println(s"✗ Validation failed:\n  - $errorMessages") *>
-              IO.raiseError(new RuntimeException("Validation failed"))
+      // Create output directory, only now that the deck is known to be good
+      _ <- PathResolver.ensureOutputDirExists(outputDir)
 
       // Copy images if enabled
       _ <- if cliArgs.copyImages then
@@ -369,12 +358,8 @@ object Main extends IOApp:
             (diagram.source, "") // Empty string triggers fallback in renderer
         }
       }.map(_.toMap)
-      _ <- if diagrams.nonEmpty && preRenderedDiagrams.nonEmpty then
-        IO.println(s"✓ Pre-rendered ${preRenderedDiagrams.size} diagram(s)")
-      else if diagrams.nonEmpty then
-        IO.println("⚠ Diagrams will use fallback rendering (install mermaid-cli for full support)")
-      else
-        IO.unit
+      _ <- RenderMessages.diagramSummary(diagrams.length, preRenderedDiagrams.values.count(_.nonEmpty))
+        .fold(IO.unit)(IO.println)
 
       // Break screen image: copy it into the output so the deck can show it
       deckDir = Option(inputPath.toAbsolutePath.getParent).getOrElse(Paths.get(".").toAbsolutePath)
@@ -508,7 +493,7 @@ object Main extends IOApp:
             case None => IO.unit)
         case None =>
           IO.println("  Status: Not found") *>
-          IO.println(s"  Create: echo '{{}}' > $globalConfigPath")
+          IO.println(s"  Create: ${RenderMessages.createConfigCommand(globalConfigPath.toString)}")
 
       _ <- IO.println("")
 
@@ -542,7 +527,7 @@ object Main extends IOApp:
         case None =>
           val suggestedPath = currentDir.resolve(".mdslides").resolve("config.json")
           IO.println("  Location: Not found (searched upward from current directory)") *>
-          IO.println(s"  Create: mkdir -p .mdslides && echo '{{}}' > $suggestedPath")
+          IO.println(s"  Create: mkdir -p .mdslides && ${RenderMessages.createConfigCommand(suggestedPath.toString)}")
 
       _ <- IO.println("")
       _ <- IO.println("─" * 70)

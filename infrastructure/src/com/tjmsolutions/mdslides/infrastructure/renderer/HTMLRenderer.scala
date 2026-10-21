@@ -1324,9 +1324,8 @@ object HTMLRenderer:
       // Remote URL or data URI - use as-is
       url
     else
-      // Local file - extract filename and point to images/ subdirectory
-      val filename = Paths.get(url).getFileName.toString
-      s"images/$filename"
+      // Local file: the copier puts it under images/ at ImageAssetCopier.outputPath (MS-030)
+      s"images/${com.tjmsolutions.mdslides.infrastructure.assets.ImageAssetCopier.outputPath(url)}"
 
   /**
    * Render content image to HTML (US-005).
@@ -1429,7 +1428,7 @@ object HTMLRenderer:
         }
       else
         style := "text-align: left"
-      th(alignment)(header)
+      th(alignment)(renderInlineText(header))
     }
 
     val headerRow = tr(headerCells: _*)
@@ -1444,7 +1443,7 @@ object HTMLRenderer:
           }
         else
           style := "text-align: left"
-        td(alignment)(cell)
+        td(alignment)(renderInlineText(cell))
       }
       tr(cells: _*)
     }

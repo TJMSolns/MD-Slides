@@ -16,10 +16,10 @@ pass through the tour's **Try it** steps on a real phone.
 | Feature | Tour slide | Docs | Verified by |
 |---|---|---|---|
 | Templates: title, content, section-title, two-column, diagram, closing | Templates section | writing-slides | Unit (`TemplateV2Spec`, `MarkdownParserSpec`); render of tour |
-| Inline formatting, lists, tables | Inline formatting; Lists; Tables | writing-slides | Unit (`FormattedContentSpec`, `HTMLRendererTableSpec`) |
+| Inline formatting, lists, tables (bold, code and links inside cells) | Inline formatting; Lists; Tables | writing-slides | Unit (`FormattedContentSpec`, `HTMLRendererTableSpec`, `FlexmarkAdapterTableSpec`); render of tour |
 | Code blocks with syntax highlighting | Code blocks: syntax highlighting; Python and Bash | writing-slides | Unit; browser check |
 | Long code listings shrink (over 20 lines) | Long code listings | writing-slides | Browser check; phone |
-| Images (copied) and data URLs; alt text required | Images | writing-slides, validation | Unit (`MarkdownParserImageAltSpec`, `HTMLRendererImageSpec`) |
+| Images (copied) and data URLs; alt text required | Images | writing-slides, validation | Unit (`MarkdownParserImageAltSpec`, `HTMLRendererImageSpec`, `ImagePathRoundTripSpec`: every documented path form resolves in the output); release run of a deck with `./images/`, `images/` and bare file names |
 | Mermaid diagrams (pre-rendered with `mmdc`), captions | diagram template; Mermaid diagram: live render | writing-slides | Unit (`MarkdownParserCaptionSpec`, `MermaidDiagramSpec`); browser check |
 | Speaker notes | Speaker notes | speaker-view | Unit |
 | Per-slide background | Per-slide background image | writing-slides | Render of tour |
@@ -67,7 +67,7 @@ pass through the tour's **Try it** steps on a real phone.
 
 | Feature | Tour slide | Docs | Verified by |
 |---|---|---|---|
-| Errors stop the render (structure, alt text, missing images) | What gets validated; Validation output | validation | Unit |
+| Errors stop the render (structure, alt text, missing images), all reported in one pass before anything is written | What gets validated; Validation output | validation | Unit (`DeckCheckSpec`, `TwoColumnSlideSpec`); release run of a deck with problems on several slides |
 | Warnings (density, theme contrast) | What gets validated; Validation output | validation | Unit (`SlideSpec`, density properties) |
 | Accessibility report (`--accessibility-report`) | render: all flags | validation | Release run |
 

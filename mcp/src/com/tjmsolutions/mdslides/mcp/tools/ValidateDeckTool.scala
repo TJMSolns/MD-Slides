@@ -1,8 +1,7 @@
 package com.tjmsolutions.mdslides.mcp.tools
 
 import cats.effect.IO
-import com.tjmsolutions.mdslides.domain.{SlideDeck, ValidationError}
-import com.tjmsolutions.mdslides.infrastructure.parser.MarkdownParser
+import com.tjmsolutions.mdslides.infrastructure.validation.DeckCheck
 import com.tjmsolutions.mdslides.mcp.model.ValidationResult
 import io.circe.Json
 
@@ -30,24 +29,14 @@ object ValidateDeckTool:
         try
           val markdown = Files.readString(inputPath)
 
-          MarkdownParser.parse(markdown) match
-            case Left(err) => Left(s"Parse failed: $err")
-            case Right(deck) =>
-              val (warnings, errors) = SlideDeck.validated(deck.slides) match
-                case Right(_) => (Nil, Nil)
-                case Left(issues) =>
-                  val (warns, errs) = issues.toList.partition {
-                    case _: ValidationError.DensityWarning => true
-                    case _ => false
-                  }
-                  (warns.map(_.displayMessage), errs.map(_.displayMessage))
-
-              Right(ValidationResult(
-                valid = errors.isEmpty,
-                slideCount = deck.slideCount,
-                errors = errors,
-                warnings = warnings
-              ))
+          // Same checks as the CLI render, every problem reported together (site WQ-077)
+          val check = DeckCheck.run(markdown, Option(inputPath.toAbsolutePath.getParent))
+          Right(ValidationResult(
+            valid = check.passed,
+            slideCount = check.slideCount,
+            errors = check.errors,
+            warnings = check.warnings
+          ))
         catch case e: Exception =>
           Left(s"Validation failed: ${e.getMessage}")
       }

@@ -175,3 +175,13 @@ class TwoColumnSlideSpec extends munit.ScalaCheckSuite:
       TwoColumnError.EmptyColumn("right")
     )
   }
+
+  test("two-column errors read as instructions, not internal names (MS-031)") {
+    assertEquals(TwoColumnError.MissingDelimiter.displayMessage,
+      "a two-column slide needs one ---column--- line between the columns (found none)")
+    assertEquals(TwoColumnError.MultipleDelimiters(2).displayMessage,
+      "a two-column slide needs exactly one ---column--- line (found 2)")
+    assertEquals(TwoColumnError.EmptyColumn("right").displayMessage,
+      "the right column of a two-column slide is empty")
+  }
+
