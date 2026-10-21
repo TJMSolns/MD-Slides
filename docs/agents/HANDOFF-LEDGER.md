@@ -4,6 +4,27 @@ Append-only. New entries at the top. Numbering continues from the archived plann
 
 ---
 
+## HL-071 — 2026-10-21 — v1.1.2: image paths, all-at-once validation, table formatting (MS-030–033)
+
+**Session:** Tony + Claude (org root)
+
+**What happened:**
+- v1.1.2 released (`99c119e`, tag v1.1.2, CI green, asset digests equal to the local build). Fixes: relative image
+  paths keep their folders (MS-030); validation reports every problem on every slide in one pass and writes nothing
+  until the deck is clean, in the CLI and the MCP `validate_deck` tool (`DeckCheck`); table cells keep bold, code and
+  links; diagram captions keep their quotation marks; frontmatter unquoting only strips wrapping quotes; clearer
+  two-column, config and no-mmdc messages (MS-031, MS-032). Tests 754 → 779.
+- Every fixed scenario checked with the downloaded jar in a clean home directory. CHANGELOG, FEATURES.md, README and
+  the feature tour updated; the live demo was rebuilt from v1.1.2 (browser check 23/23 on a local build).
+- Real-world use: a 102-slide course deck renders with no warnings and WCAG 2.1 AA passing.
+
+**Decisions made:** none.
+**Open items:** verifier passes for MS-030–033 (and the still-open MS-026, MS-028 findings); live-site browser check
+of the rebuilt demo; Tony's phone test; MS-027 (`--watch`).
+**Next owner:** Claude (verifier passes, in a session at this repo's root); Tony (phone test).
+
+---
+
 ## HL-070 — 2026-10-17 — v1.1.1: every documented feature verified against the release (MS-028)
 
 **Session:** Tony + Claude (org root)
