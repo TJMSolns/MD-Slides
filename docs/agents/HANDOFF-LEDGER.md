@@ -25,7 +25,9 @@ Append-only. New entries at the top. Numbering continues from the archived plann
 
 **Decisions made:** none
 **Open items carried forward:**
-- MS-035, MS-036 (P3 bugs, queued); MS-027 (`--watch`), MS-029 (other browsers, Java 11).
+- MS-038 (P2: on one slide, the first failing check hides the slide's other problems; tour and FEATURES overclaim),
+  MS-037 (P3: author limit counts `**`; title, subtitle and caption line warnings never fire), MS-035, MS-036 (P3),
+  all queued from site WQ-077 and MD-Slides verifier findings; MS-027 (`--watch`), MS-029 (other browsers, Java 11).
 - MS-026: deleting the 14 old public Actions runs is Tony's call.
 - Phone walk of the v1.1.3 tour (release step 8) is Tony's.
 **Next owner:** Tony — phone test of v1.1.3; MS-026 decision.
