@@ -124,7 +124,8 @@ review of the changed parts only.
 1. `mill __.test` green. `CHANGELOG.md`, `mdSlidesVersion` (build.sc), `docs/FEATURES.md` and the feature tour
    (`examples/feature-tour.md`: every feature has a slide with a **Try it** step) are up to date. Commit, push `main`,
    CI green.
-2. `mill cli.assembly mcp.assembly`
+2. `mill cli.assembly + mcp.assembly` (the `+` matters: without it, Mill 0.11 passes `mcp.assembly` to the first
+   target as an argument, builds only the CLI jar and still exits 0)
 3. Create the release on the pushed commit with **all three assets**: `md-slides.jar`, `mdslides-mcp.jar`,
    `examples/feature-tour.md`:
    ```bash
@@ -133,7 +134,9 @@ review of the changed parts only.
    cp examples/feature-tour.md /tmp/feature-tour.md
    gh release create vX.Y.Z /tmp/md-slides.jar /tmp/mdslides-mcp.jar /tmp/feature-tour.md --target main --notes-file <changelog section>
    ```
-4. **Verify the release:** asset digests match the local builds; a *downloaded* `md-slides.jar --version` prints vX.Y.Z.
+4. **Verify the release:** asset digests match the local builds; both jars' digests differ from the previous release's;
+   a *downloaded* `md-slides.jar --version` prints vX.Y.Z; the *downloaded* `mdslides-mcp.jar` is exercised on
+   whatever this release changed in the MCP tools.
 5. **Live demo and browser check** (in `~/Cloud/GitHub/tjm-solutions-site`):
    - `scripts/build-mdslides-demo.sh vX.Y.Z` renders the released tour into `static/mdslides/demo/`
    - serve the built site and run `node scripts/verify-mdslides-demo.mjs <url>/mdslides/demo <downloaded jar>`:

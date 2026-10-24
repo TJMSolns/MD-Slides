@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Independent reviews of the 1.1.1 release, and building a 100-slide course deck with it, found the defects below.
 Every one is fixed with a test that failed first.
 
+`mdslides-mcp.jar` was replaced on 2026-10-24: the file first attached to this release was the 1.1.1 build, so its
+`validate_deck` still stopped at the first problem. If you downloaded it before then, download it again.
+
 ### Fixed
 - **Images with a relative path rendered broken.** `![alt](./images/x.png)`, the documented example, was copied to
   `images/images/x.png` while the page pointed at `images/x.png`. The copier and the renderer now share one path
