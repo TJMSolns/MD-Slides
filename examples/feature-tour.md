@@ -778,12 +778,11 @@ zip -r my-talk.zip my-talk/
 
 ---column---
 
-**PDF export — browser print:**
+**PDF export — browser print** (speaker notes stay out of the PDF):
 
 1. Open `my-talk/index.html`
 2. File → Print (Ctrl/Cmd + P)
-3. Destination → Save as PDF
-4. Print
+3. Destination → Save as PDF, then Print
 
 Or with headless Chrome:
 
@@ -792,8 +791,6 @@ chromium --headless \
   --print-to-pdf=my-talk.pdf \
   my-talk/index.html
 ```
-
-Speaker notes are in `speaker.html` — not included in the PDF.
 
 <!-- Speaker notes: The output is deliberately self-contained — index.html, speaker.html, and all assets in one directory that works without a server. For GitHub Pages, put the output in a docs/ folder or gh-pages branch. PDF via browser print is simplest; headless Chrome gives more control over page size and margins. -->
 

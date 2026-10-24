@@ -5,6 +5,18 @@ All notable changes to MD-Slides will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2026-10-24
+
+Independent reviews of the 1.1.2 release found two places where it still didn't do what it says.
+
+### Fixed
+- **Quotation marks in frontmatter:** a value that starts and ends with a quoted word, such as
+  `caption: "Chocolate" and "vanilla"`, kept losing its outer quotation marks. Quotes are now removed only when one
+  pair wraps the whole value; a wrapped value can contain `\"`.
+- **Two-column density:** each column now warns above 10 lines or 75 words, as the docs and the feature tour say.
+  Before, columns were never checked. A `##` heading on a two-column slide is part of the left column.
+- **Feature tour:** the "Distributing your presentation" slide fits the column limit.
+
 ## [1.1.2] - 2026-10-21
 
 Independent reviews of the 1.1.1 release, and building a 100-slide course deck with it, found the defects below.

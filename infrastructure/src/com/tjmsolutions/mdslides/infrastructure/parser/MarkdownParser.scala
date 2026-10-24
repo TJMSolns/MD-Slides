@@ -236,9 +236,14 @@ object MarkdownParser:
    * - `key: value` → Map("key" -> "value")
    * - `key:\n  - item1\n  - item2` → Map("key" -> "item1\nitem2")
    */
-  /** MS-032: strip surrounding quotation marks only when the whole value is wrapped in them. */
+  /**
+   * MS-032: strip surrounding quotation marks only when one pair wraps the whole value: any quotation mark inside
+   * must be escaped (`\"`), so `"Chocolate" and "vanilla"` stays as written.
+   */
   private def unquote(value: String): String =
-    if value.length >= 2 && value.startsWith("\"") && value.endsWith("\"") then value.substring(1, value.length - 1)
+    if value.length >= 2 && value.startsWith("\"") && value.endsWith("\"") then
+      val inner = value.substring(1, value.length - 1)
+      if inner.replace("\\\"", "").contains("\"") then value else inner.replace("\\\"", "\"")
     else value
 
   private def parseFrontmatterLines(lines: List[String]): Map[String, String] =

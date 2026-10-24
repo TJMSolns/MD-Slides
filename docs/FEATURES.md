@@ -67,8 +67,8 @@ pass through the tour's **Try it** steps on a real phone.
 
 | Feature | Tour slide | Docs | Verified by |
 |---|---|---|---|
-| Errors stop the render (structure, alt text, missing images), all reported in one pass before anything is written | What gets validated; Validation output | validation | Unit (`DeckCheckSpec`, `TwoColumnSlideSpec`); release run of a deck with problems on several slides |
-| Warnings (density, theme contrast) | What gets validated; Validation output | validation | Unit (`SlideSpec`, density properties) |
+| Errors stop the render (structure, alt text, missing images, a heading or author over 80 characters, a caption over 100), all reported in one pass before anything is written | What gets validated; Validation output | validation | Unit (`DeckCheckSpec`, `TwoColumnSlideSpec`); release run of a deck with problems on several slides |
+| Warnings (density: body, title, subtitle, caption and each two-column column; theme contrast) | What gets validated; Validation output | validation | Unit (`SlideSpec`, density properties, `DeckCheckSpec`) |
 | Accessibility report (`--accessibility-report`) | render: all flags | validation | Release run |
 
 ## Known gaps

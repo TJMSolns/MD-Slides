@@ -20,3 +20,12 @@ class FrontmatterQuoteSpec extends munit.FunSuite:
   test("a fully quoted caption is unquoted") {
     assertEquals(caption(""""The render pipeline""""), Some("The render pipeline"))
   }
+
+  test("a caption that starts and ends with a quoted word keeps every quotation mark") {
+    assertEquals(caption(""""Chocolate" and "vanilla""""), Some(""""Chocolate" and "vanilla""""))
+    assertEquals(caption(""""Starts quoted" then trails "end""""), Some(""""Starts quoted" then trails "end""""))
+  }
+
+  test("a fully quoted caption with escaped quotation marks inside is unquoted and unescaped") {
+    assertEquals(caption(""""The word \"chocolate\" has four senses""""), Some("""The word "chocolate" has four senses"""))
+  }

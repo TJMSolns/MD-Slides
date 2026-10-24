@@ -1,7 +1,7 @@
 import mill._
 import mill.scalalib._
 
-val mdSlidesVersion = "1.1.2"
+val mdSlidesVersion = "1.1.3"
 
 // Shared Scala 3 configuration for all modules
 trait MDSlidesModule extends ScalaModule {

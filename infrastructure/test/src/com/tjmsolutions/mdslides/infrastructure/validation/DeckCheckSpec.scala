@@ -74,3 +74,17 @@ class DeckCheckSpec extends munit.FunSuite:
     assertEquals(result.slideCount, 2)
     assert(result.deck.isDefined)
   }
+
+  test("each two-column column warns above 10 lines or 75 words, as the docs say (site WQ-077)") {
+    val lines = (n: Int) => (1 to n).map(i => s"- item $i").mkString("\n")
+    val words = (n: Int) => (1 to n).map(i => s"w$i").mkString(" ")
+    val tooManyLines = title + slide("two-column", s"${lines(11)}\n\n---column---\n\n${lines(10)}")
+    val tooManyWords = title + slide("two-column", s"${words(75)}\n\n---column---\n\n${words(76)}")
+    val linesResult = DeckCheck.run(tooManyLines, None)
+    assert(linesResult.passed, s"warnings must not fail the deck: ${linesResult.errors}")
+    assertEquals(linesResult.warnings.count(_.contains("Slide 2")), 1, s"got ${linesResult.warnings}")
+    assert(linesResult.warnings.exists(w => w.contains("leftColumn") && w.contains("10 lines")), s"got ${linesResult.warnings}")
+    val wordsResult = DeckCheck.run(tooManyWords, None)
+    assertEquals(wordsResult.warnings.count(_.contains("Slide 2")), 1, s"got ${wordsResult.warnings}")
+    assert(wordsResult.warnings.exists(w => w.contains("rightColumn") && w.contains("75 words")), s"got ${wordsResult.warnings}")
+  }

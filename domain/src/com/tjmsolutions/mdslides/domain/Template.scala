@@ -156,12 +156,15 @@ object Template:
    *
    * Related: v3.0.0 Two-Column Layout
    */
+  /** Each column: at most 10 lines and 75 words, as warnings (half a body slot; site WQ-077). */
+  private val columnDensity: SlotConstraints = SlotConstraints(maxLines = Some(10), maxWords = Some(75))
+
   val twoColumn: Template =
     Template(
       name = "two-column",
       slots = List(
-        SlotDefinition(SlotName.LeftColumn, required = true, constraints = SlotConstraints()),
-        SlotDefinition(SlotName.RightColumn, required = true, constraints = SlotConstraints())
+        SlotDefinition(SlotName.LeftColumn, required = true, constraints = columnDensity),
+        SlotDefinition(SlotName.RightColumn, required = true, constraints = columnDensity)
       )
     )
 
