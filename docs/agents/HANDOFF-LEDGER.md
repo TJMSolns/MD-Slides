@@ -4,6 +4,34 @@ Append-only. New entries at the top. Numbering continues from the archived plann
 
 ---
 
+## HL-072 — 2026-10-24 — Verifier pass on v1.1.2; v1.1.3 released (MS-030–036)
+
+**Session:** Tony + Claude (org root). Tony: "go, run the verifier checks and fix the GS1 links".
+
+**What happened:**
+- Pre-verifier recheck found the v1.1.2 release carried the v1.1.1 MCP jar (same sha256 `0f45bf12…`, no `DeckCheck`).
+  Cause: the documented step `mill cli.assembly mcp.assembly` builds only the CLI jar in Mill 0.11 and exits 0.
+  Rebuilt from the tag, re-uploaded; CHANGELOG and release notes say so; CLAUDE.md § Releasing now uses `+` and
+  requires both jars' digests to change (`c0fcf6b`).
+- Independent verifiers (DN-010 fallback): MS-030 PASS, MS-031 PASS, MS-033 PASS, MS-032 VETO (a caption starting
+  and ending with a quoted word lost its outer quotes). Site WQ-077's verifier vetoed the two-column column limits
+  the docs promise but the jar never checked.
+- v1.1.3 (`0164759`, https://github.com/TJMSolns/MD-Slides/releases/tag/v1.1.3): quote rule fixed; each two-column
+  column warns above 10 lines / 75 words; tour slide 38 trimmed. 782 tests, CI green, digests verified, downloaded
+  jars exercised through CLI and MCP. Live demo rebuilt from v1.1.3, 23/23 against the live site.
+- MS-034 (v1.1.3) PASS; MS-032 second verifier PASS. MS-030, 031, 032, 033, 034 Done.
+- Queued from verifier side findings: MS-035 (outside-folder images with the same name overwrite each other), MS-036
+  (captions of only block HTML render empty; literal entities lose characters).
+
+**Decisions made:** none
+**Open items carried forward:**
+- MS-035, MS-036 (P3 bugs, queued); MS-027 (`--watch`), MS-029 (other browsers, Java 11).
+- MS-026: deleting the 14 old public Actions runs is Tony's call.
+- Phone walk of the v1.1.3 tour (release step 8) is Tony's.
+**Next owner:** Tony — phone test of v1.1.3; MS-026 decision.
+
+---
+
 ## HL-071 — 2026-10-21 — v1.1.2: image paths, all-at-once validation, table formatting (MS-030–033)
 
 **Session:** Tony + Claude (org root)
